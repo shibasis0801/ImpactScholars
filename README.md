@@ -1,6 +1,6 @@
 # One or two progression dimensions in early Parkinson's disease
 
-My project in the Neuromatch Impact Scholars Program (2026), with Shibasis Patnaik and Tomoya Kubota as group NeuroNexus. It uses the Parkinson's Progression Markers Initiative (PPMI) and runs for six months from November 2026. This repository holds the data pipeline and the preliminary data audit behind our proposal.
+A project in the Neuromatch Impact Scholars Program (2026) that I work on with Shibasis Patnaik and Tomoya Kubota as group NeuroNexus. It uses the Parkinson's Progression Markers Initiative (PPMI) and runs for six months from November 2026. This repository holds the data pipeline and the preliminary data audit behind our proposal.
 
 ## Question
 
@@ -17,7 +17,7 @@ The CSS averages six robustly normed tests: HVLT-R immediate and delayed recall,
 
 ## My part
 
-- **Data extraction.** I worked out which PPMI study tables and IDA image searches the project needs. `code/data.py` loads them into DuckDB, and `notebooks/data.ipynb` says exactly what to download.
+- **Data extraction.** I worked out which PPMI study tables and IDA image searches the project needs, and `notebooks/data.ipynb` says exactly what to download. `code/data.py` loads them into DuckDB, following the PPMI database Shibasis Patnaik set up for our group.
 - **Feasibility audit.** `notebooks/audit.ipynb` covers:
   - which imaging modalities are longitudinal;
   - which processed MRI measures repeat over visits;
@@ -25,7 +25,7 @@ The CSS averages six robustly normed tests: HVLT-R immediate and delayed recall,
   - how far that cohort overlaps with longitudinal DaTscan;
   - the participant counts in our proposal.
 - **Cognitive Summary Score.** The audit scores all six tests against the published robust norms and computes the CSS.
-- **Proposal and presentation.** I wrote both; the presentation is `slides.pdf`.
+- **Proposal and presentation.** I prepared the data and feasibility results in our proposal and presentation (`slides.pdf`).
 
 ## Preliminary audit
 
