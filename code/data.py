@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 import os
 import re
+import warnings
 
 import duckdb
 import pandas as pd
@@ -57,10 +58,18 @@ def table(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
 
 
-def search(path: Path) -> pd.DataFrame:
+SEARCH = {"PATNO": "Subject ID", "visit": "Visit", "modality": "Modality"}
+
+
+def search(path: Path) -> pd.DataFrame | None:
     frame = pd.read_csv(path, dtype=str, encoding="utf-8-sig", encoding_errors="replace")
     frame.columns = frame.columns.str.strip().str.lower()
-    return frame.rename(columns={"subject id": "PATNO", "subject": "PATNO"})[["PATNO", "visit", "modality"]]
+    frame = frame.rename(columns={"subject id": "PATNO", "subject": "PATNO"})
+    missing = [name for column, name in SEARCH.items() if column not in frame.columns]
+    if missing:
+        warnings.warn(f"Skipped {path.name}: it has no {' or '.join(missing)} column. Show these columns in the IDA search results and download it again.")
+        return None
+    return frame[list(SEARCH)]
 
 
 class PPMI:
@@ -73,8 +82,8 @@ class PPMI:
         missing = [name for name in STUDY if table(name) not in self.files]
         if missing:
             raise FileNotFoundError(f"Download these Study Data tables into {self.root / 'study'}: {', '.join(missing)}")
-        searches = [search(path) for path in sorted((self.root / "imaging").glob("*.csv"))]
-        images = pd.concat(searches) if searches else pd.DataFrame(columns=["PATNO", "visit", "modality"], dtype=str)
+        searches = [frame for frame in map(search, sorted((self.root / "imaging").glob("*.csv"))) if frame is not None]
+        images = pd.concat(searches) if searches else pd.DataFrame(columns=list(SEARCH), dtype=str)
         self.save("images", images.assign(PATNO=images.PATNO.str.strip(), event=images.visit.map(VISITS).fillna(images.visit)))
         self.db.execute(SQL)
 
