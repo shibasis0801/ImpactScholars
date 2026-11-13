@@ -72,7 +72,11 @@ cd notebooks
 jupyter lab
 ```
 
-The PPMI data use agreement does not allow participant-level data to be shared, and it forbids applying AI tools to individual-level PPMI data. Clear notebook outputs before committing.
+The PPMI data use agreement does not allow participant-level data to be shared, and it forbids applying AI tools to individual-level PPMI data. Keep raw data, participant identifiers and individual results out of version control.
+
+The notebooks include reviewed aggregate tables and static plots so their results are visible on GitHub. Preserve these outputs when committing. To refresh them, run the notebooks locally with authorised data access, review the outputs for participant-level information, and save the notebooks before committing and pushing. GitHub displays the saved results; it does not execute cells or refresh results when the code or downloads change.
+
+If setup warns that image-search exports were skipped because required columns are missing, empty imaging tables and plots mean coverage is unavailable from those exports, rather than that PPMI has no images. The historical counts in the narrative may differ from a newer saved run.
 
 ## Data and references
 
