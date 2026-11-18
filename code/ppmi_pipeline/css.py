@@ -30,43 +30,52 @@ def _fit_norms(conn, reference_ids_path):
     import numpy as np
     import statsmodels.api as sm
 
-    reference = conn.execute("""
+    # The baseline reference sample and its design terms, centred on the sample's mean age and education.
+    conn.execute("""
+        CREATE OR REPLACE TEMP TABLE css_reference AS
         WITH ids AS (
             SELECT DISTINCT regexp_replace(trim(patient_id), '^([0-9]+)\\.0+$', '\\1') AS patient_id
             FROM read_csv(?, header = true, all_varchar = true)
+        ), reference AS (
+            SELECT patient_id, age_years, education_years, sex, hvlt_immediate, hvlt_delayed, jlo, lns, sdmt, semantic
+            FROM ids JOIN css_covariates USING (patient_id)
+            JOIN cognition_by_visit USING (patient_id, event_id)
+            WHERE event_id = 'BL' AND age_years IS NOT NULL AND education_years IS NOT NULL AND sex IS NOT NULL
+        ), centred AS (
+            SELECT *, avg(age_years) OVER () AS age_center, avg(education_years) OVER () AS edu_center FROM reference
         )
-        SELECT age_years, education_years, sex, hvlt_immediate, hvlt_delayed, jlo, lns, sdmt, semantic
-        FROM ids JOIN css_covariates USING (patient_id)
-        JOIN cognition_by_visit USING (patient_id, event_id)
-        WHERE event_id = 'BL' AND age_years IS NOT NULL AND education_years IS NOT NULL AND sex IS NOT NULL
-        ORDER BY patient_id
-    """, [str(Path(reference_ids_path).expanduser().resolve())]).df()
-    if reference.empty:
+        SELECT *, 1.0 AS intercept, age_years - age_center AS age_linear, (age_years - age_center) ** 2 AS age_quadratic,
+               CAST(sex AS DOUBLE) AS sex_coef, education_years - edu_center AS edu_linear,
+               (education_years - edu_center) ** 2 AS edu_quadratic
+        FROM centred ORDER BY patient_id
+    """, [str(Path(reference_ids_path).expanduser().resolve())])
+    centres = conn.execute("SELECT count(*), any_value(age_center), any_value(edu_center) FROM css_reference").fetchone()
+    if not centres[0]:
         raise ValueError("No baseline reference participants have the required demographics and cognitive records.")
+    age_center, edu_center = centres[1], centres[2]
 
-    age_center = reference["age_years"].mean()
-    edu_center = reference["education_years"].mean()
-    design = reference.assign(intercept=1.0, age_linear=reference["age_years"] - age_center,
-                              edu_linear=reference["education_years"] - edu_center, sex_coef=reference["sex"])
-    design["age_quadratic"] = design["age_linear"] ** 2
-    design["edu_quadratic"] = design["edu_linear"] ** 2
     terms = ["intercept", "age_linear", "age_quadratic", "sex_coef", "edu_linear", "edu_quadratic"]
     quadratic_for = {"age_linear": "age_quadratic", "edu_linear": "edu_quadratic"}
     fits = []
     for measure in MEASURES:
-        sample = design.loc[design[measure].notna()]
+        sample = conn.execute(f"SELECT CAST({measure} AS DOUBLE) AS y, {', '.join(terms)} FROM css_reference "
+                              f"WHERE {measure} IS NOT NULL ORDER BY patient_id").fetchnumpy()
         included = terms.copy()
-        if len(sample) <= len(included) or np.linalg.matrix_rank(sample[included]) < len(included):
+        design = np.column_stack([np.asarray(sample[term], dtype=float) for term in included])
+        if len(sample["y"]) <= len(included) or np.linalg.matrix_rank(design) < len(included):
             raise ValueError(f"The baseline reference sample for {measure} cannot estimate the full model.")
         while True:
-            model = sm.OLS(sample[measure].astype(float), sample[included]).fit()
+            model = sm.OLS(np.asarray(sample["y"], dtype=float),
+                           np.column_stack([np.asarray(sample[term], dtype=float) for term in included])).fit()
+            pvalues = dict(zip(included, model.pvalues))
             # Retain the linear term whenever the corresponding quadratic is present.
             removable = [term for term in included[1:] if quadratic_for.get(term) not in included]
-            if not removable or model.pvalues[removable].max() <= 0.10:
+            if not removable or max(pvalues[term] for term in removable) <= 0.10:
                 break
-            included.remove(model.pvalues[removable].idxmax())
-        fit = model.params.reindex(terms, fill_value=0).to_dict()
-        fit.update(measure=measure, age_center=age_center, edu_center=edu_center, rmse=np.sqrt(model.mse_resid))
+            included.remove(max(removable, key=pvalues.get))
+        params = dict(zip(included, model.params))
+        fit = {term: float(params.get(term, 0.0)) for term in terms}
+        fit.update(measure=measure, age_center=age_center, edu_center=edu_center, rmse=float(np.sqrt(model.mse_resid)))
         fits.append([fit[column] for column in ("measure", *NORM_COLUMNS)])
 
     conn.execute("CREATE OR REPLACE TEMP TABLE css_norms (measure VARCHAR, "

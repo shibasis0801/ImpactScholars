@@ -84,10 +84,10 @@ p.db.execute("USE memory")
 
 ## A dated copy on disk
 
-`python code/data.py --export ~/ppmi/ppmi-2026-11-18.duckdb` saves the raw tables and the clean layer to one DuckDB file. For CSV exports of the clean layer, run the build from `code/`, giving it folders that hold one download of each table:
+`python code/data.py --export data/ppmi-2026-11-18.duckdb` saves the raw tables and the clean layer to one DuckDB file. For CSV exports of the clean layer, run the build from `code/`, giving it folders that hold one download of each table:
 
 ```bash
-python -m ppmi_pipeline.pipeline build --input ~/ppmi/study --output ~/ppmi/builds/2026-11-18 --release 10Nov2026
+python -m ppmi_pipeline.pipeline build --input ../data/study --output ../data/builds/2026-11-18 --release 10Nov2026
 ```
 
-It writes `ppmi.duckdb`, one CSV for each of the four cohorts, and CSVs for patients, visits, neurological exams, cognitive scores by visit, all supplied scan records, participant and visit coverage, the medication log, LEDD by visit, biospecimen results, and source availability. A cohort with no members has a header-only CSV. With `altair` and `vl-convert-python` installed it also saves HTML charts of coverage and of up to two longitudinal participants per imaging modality. The output folder must be new and outside the repository, and the build stops if an input folder holds two downloads of the same table.
+It writes `ppmi.duckdb`, one CSV for each of the four cohorts, and CSVs for patients, visits, neurological exams, cognitive scores by visit, all supplied scan records, participant and visit coverage, the medication log, LEDD by visit, biospecimen results, and source availability. A cohort with no members has a header-only CSV. With `altair` and `vl-convert-python` installed it also saves HTML charts of coverage and of up to two longitudinal participants per imaging modality. The output folder must be new, and in `data/` (which git ignores) or outside the repository, and the build stops if an input folder holds two downloads of the same table.

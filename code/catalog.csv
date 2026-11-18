@@ -34,10 +34,10 @@ Digital Sensor,Verily Study Watch,Verily Study Watch derived data,sensor data,cs
 Enrollment,Subject Enrollment,Enrollment records (various),participant table,csv,PATNO,,,"Consent, sub-study participation and other enrolment records"
 Imaging,DaTSCAN Imaging,Xing Core Lab - Quant SBR,imaging table,csv,"PATNO, EVENT_ID, IMAGEID",Xing_Core_Lab_-_Quant_SBR,core,"DaTscan specific binding ratios for left and right caudate and putamen, cerebral white matter reference (columns *_REF_CWM); the current core lab"
 Imaging,DaTSCAN Imaging,DaTscan SBR Analysis (archived Invicro),imaging table,csv,"PATNO, EVENT_ID, IMAGEID",DaTScan_SBR_Analysis,pipeline,Earlier SBRs with an occipital reference; never pool with the Xing values
-Imaging,DaTSCAN Imaging,DaTscan Imaging,imaging table,csv,"PATNO, EVENT_ID",,,"Scan metadata: date, site"
-Imaging,DaTSCAN Imaging,DaTscan Metadata,imaging table,csv,"PATNO, EVENT_ID",,,"Acquisition details: scan time, injected dose"
-Imaging,DaTSCAN Imaging,DaTscan Visual Interpretation Results,imaging table,csv,"PATNO, EVENT_ID",,,Visual read: positive or negative
-Imaging,DaTSCAN Imaging,DaTscan SBR and visual-read methods,document,pdf,,,,How SBRs are computed and scans are read
+Imaging,DaTSCAN Imaging,DaTscan Imaging,imaging table,csv,"PATNO, EVENT_ID",,imaging,"Scan metadata: date, site"
+Imaging,DaTSCAN Imaging,DaTscan Metadata,imaging table,csv,"PATNO, EVENT_ID",,imaging,"Acquisition details: scan time, injected dose"
+Imaging,DaTSCAN Imaging,DaTscan Visual Interpretation Results,imaging table,csv,"PATNO, EVENT_ID",,imaging,Visual read: positive or negative
+Imaging,DaTSCAN Imaging,DaTscan SBR and visual-read methods,document,pdf,,,imaging,How SBRs are computed and scans are read
 Imaging,Diffusion Imaging,DTI Regions of Interest,imaging table,csv,"PATNO, EVENT_ID",,,Diffusion measures in 8 regions for a small early sub-study
 Imaging,Diffusion Imaging,DTI Preprocessing Manual,document,pdf,,,,Method document for the DTI sub-study
 Imaging,Magnetic Resonance Imaging,Grey Matter Volume,imaging table,csv,"PATNO, EVENT_ID, IMAGEID",Grey_Matter_Volume,core,One total grey-matter volume per T1 scan (GM_VOLUME) with the scan month (MRIDATE)
@@ -45,8 +45,8 @@ Imaging,Magnetic Resonance Imaging,Xing Core Lab - MRI acquisition metadata,imag
 Imaging,Magnetic Resonance Imaging,FS7 ASEG VOL,imaging table,csv,"PATNO, EVENT_ID",FS7_ASEG_VOL,recommended,FreeSurfer 7 subcortical volumes
 Imaging,Magnetic Resonance Imaging,FS7 APARC CTH,imaging table,csv,"PATNO, EVENT_ID",FS7_APARC_CTH,recommended,FreeSurfer 7 regional cortical thickness
 Imaging,Magnetic Resonance Imaging,MRIQC,imaging table,csv,"PATNO, EVENT_ID",,recommended,"MRI quality metrics, including the intracranial grey-matter fraction needed to correct for head size"
-Imaging,Magnetic Resonance Imaging,Magnetic Resonance Imaging (MRI),imaging table,csv,"PATNO, EVENT_ID",Magnetic_Resonance_Imaging__MRI_,,"Was a brain MRI done at the visit, and the clinical read"
-Imaging,Magnetic Resonance Imaging,MRI Metadata,imaging table,csv,"PATNO, EVENT_ID",,,"Which sequences were acquired: DTI, NM-MT, T1, T2 FLAIR"
+Imaging,Magnetic Resonance Imaging,Magnetic Resonance Imaging (MRI),imaging table,csv,"PATNO, EVENT_ID",Magnetic_Resonance_Imaging__MRI_,imaging,"Was a brain MRI done at the visit, and the clinical read"
+Imaging,Magnetic Resonance Imaging,MRI Metadata,imaging table,csv,"PATNO, EVENT_ID",,imaging,"Which sequences were acquired: DTI, NM-MT, T1, T2 FLAIR"
 Imaging,Magnetic Resonance Imaging,Rs-fMRI Data Availability and Usage,document,pdf,,,,Resting-state fMRI sub-study (2012 to 2019)
 Imaging,PET Imaging,PET metadata and results (various),imaging table,csv,"PATNO, EVENT_ID",,,Tau and AV-133 PET sub-studies
 Medical History,Medical,Adverse Event Telephone Assessment,log,csv,"PATNO, EVENT_ID",,,Follow-up after lumbar puncture or DaTscan
@@ -95,10 +95,11 @@ PPMI Remote,PPMI Remote,PPMI Remote screening tables (various),online table,csv,
 PPMI FOUND,PPMI FOUND,FOUND questionnaires (various),online table,csv,PATNO,,,Lifetime risk factors of earlier PPMI participants
 Archived PPMI Data,Archived PPMI Data,"Prior data capture, publication archives, quarterly freezes",archive,csv,,,,Older snapshots; rarely needed
 Image Collections,Advanced Search,Image search results,imaging table,csv,"Subject ID, Visit, Modality, Image ID",,recommended,"One row per image series from Search, Advanced Search with CSV Download; loaded as the images table"
-Image Collections,SPECT,DaTscan SPECT images,images,zip (DICOM),"Subject, Visit, Image Data ID",,,Raw and reconstructed DaTscan series
-Image Collections,MRI,3D T1-weighted MRI,images,zip (DICOM or NIfTI),"Subject, Visit, Image Data ID",,,Structural MRI series; the source for regional grey-matter measures
+Image Collections,SPECT,DaTscan SPECT images,images,zip (DICOM),"Subject, Visit, Image Data ID",,imaging,Raw and reconstructed DaTscan series
+Image Collections,MRI,3D T1-weighted MRI,images,zip (DICOM or NIfTI),"Subject, Visit, Image Data ID",,imaging,Structural MRI series; the source for regional grey-matter measures
 Image Collections,DTI,Diffusion MRI,images,zip (DICOM),"Subject, Visit, Image Data ID",,,Diffusion series
-Image Collections,MRI,"Resting-state fMRI, T2 FLAIR and neuromelanin MRI",images,zip (DICOM),"Subject, Visit, Image Data ID",,,Other MRI series
+Image Collections,MRI,"T2, PD and FLAIR MRI",images,zip (DICOM),"Subject, Visit, Image Data ID",,imaging,"Structural T2-weighted, proton-density and FLAIR series, 2D and 3D, by research group and visit"
+Image Collections,MRI,Resting-state fMRI and neuromelanin MRI,images,zip (DICOM),"Subject, Visit, Image Data ID",,,Other MRI series
 Image Collections,PET,"AV-133 and tau PET images",images,zip (DICOM),"Subject, Visit, Image Data ID",,,PET sub-studies
 Genetic Data,Genetic Data,Whole-genome sequencing,genetic files,"VCF, gVCF",PATNO,,,Processed variants; raw BAM and FASTQ on request
 Genetic Data,Genetic Data,RNA sequencing,genetic files,tar.gz,PATNO,,,Transcript abundance estimates

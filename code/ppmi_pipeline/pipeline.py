@@ -111,8 +111,9 @@ def _write_database(inputs, destination, release):
 
 def _build(inputs, output, release):
     output = Path(output).expanduser().resolve()
-    if PROJECT.parent.parent in (output, *output.parents):
-        raise ValueError("Write builds outside the repository: they hold participant-level data.")
+    repository = PROJECT.parent.parent
+    if repository in (output, *output.parents) and repository / "data" not in output.parents:
+        raise ValueError("Write builds into data/ or outside the repository: anywhere else in it, git could pick up participant-level data.")
     if output.exists():
         raise FileExistsError(f"Choose a new output directory: {output}")
     output.parent.mkdir(parents=True, exist_ok=True)

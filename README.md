@@ -1,6 +1,6 @@
 # One or two progression dimensions in early Parkinson's disease
 
-A starting point for research with the Parkinson's Progression Markers Initiative (PPMI). It holds code that files your IDA downloads and puts every table behind one SQL interface, notebooks that show what data exists and how the tables relate, a guide to the study and the science (the PPMI atlas), and a preliminary data audit for one research question, set out below.
+A starting point for research with the Parkinson's Progression Markers Initiative (PPMI). It holds code that gets your data from IDA and puts every table behind one SQL interface, notebooks that show what data exists and how the tables relate, a guide to the study and the science (the PPMI atlas), and a preliminary data audit for one research question, set out below.
 
 New to PPMI or to this code? [Getting started](#getting-started) goes from a fresh clone to SQL over your own download, and the [PPMI atlas](#the-atlas) explains the study, the science and the data.
 
@@ -48,17 +48,17 @@ Run on downloads from September to November 2026, it found:
 ```
 atlas/index.html          the PPMI atlas: the study, the science, the data and the methods
 atlas/src/                its sources; python3 atlas/src/build.py rebuilds it
-code/catalog.csv          every kind of data IDA offers, with format, keys and file name
-code/data.py              loads your IDA downloads into one DuckDB connection
-code/ida.py               opens IDA, files your downloads, fetches image collections
+code/catalog.csv          the data dictionary: every kind of PPMI data, with format, keys and file name
+code/data.py              loads the data folder into one DuckDB connection, queried with SQL
+code/ida.py               lists and downloads IDA's study data with your browser's session, files downloads, fetches image collections
 code/ppmi_pipeline/       the clean layer: typed tables, coverage views and cohort lists
-code/plot.py              figures for the notebooks
-notebooks/atlas.ipynb     fetches the whole data set from IDA, step by step, and checks it
-notebooks/dataset.ipynb   what data exists, what you have, and how to get the rest
+code/plot.py              figures for the notebooks, drawn from query results
+notebooks/dataset.ipynb   gets the data: the dictionary, what IDA offers, a SQL choice, the download, images and a check
 notebooks/schema.ipynb    how the tables relate: keys, shared participants, visits, lineage
-notebooks/data.ipynb      what to download from IDA, and the data explained
+notebooks/data.ipynb      the core tables explained
 notebooks/audit.ipynb     the preliminary data audit
 literature/               open-access papers cited below
+data/                     your PPMI data, which git ignores (see below)
 ```
 
 ## Getting started
@@ -74,11 +74,20 @@ PPMI data are not in this repository. Apply for access at [ppmi-info.org](https:
    .venv/bin/pip install -r requirements.txt
    ```
 
-2. **See what exists.** Open `notebooks/dataset.ipynb` with `.venv/bin/jupyter lab notebooks/dataset.ipynb`. It lists everything IDA offers from `code/catalog.csv`, marks what this project uses, and compares that with what you have downloaded.
+2. **Get the data.** Open `notebooks/dataset.ipynb` with `.venv/bin/jupyter lab notebooks/dataset.ipynb` and run it top to bottom on your own machine:
+   - It starts with the data dictionary, `code/catalog.csv`: every kind of PPMI data, and the sets this project uses.
+   - Sign in to IDA in your browser, then lend the notebook that session: in the browser's developer tools, copy the *Study Data* page's request as cURL and paste it when the notebook asks. IDA's sign-in has a human check and IDA issues no API tokens, so code cannot sign in by itself.
+   - With the session, the notebook lists every file IDA offers and lines it up with the dictionary and with what you have. It then downloads whatever the SQL view `wanted` selects. By default that is the project's sets plus every DaTscan and structural MRI table.
+   - Raw DaTscan and MRI images come from two image searches and IDA's *Advanced Download* URL lists, which `ida.fetch` downloads in full.
 
-3. **Download.** Run `notebooks/atlas.ipynb` on your own machine. It lists every file the project uses, opens the right IDA page for each step, waits while you tick and download there, then files and checks what arrived. Run it again at any time: it asks only for what is still missing. IDA has no programming interface for study data, so the ticking happens in the browser. Underneath, `ida.collect()` files the downloads from your Downloads folder into the data folder, and `ida.fetch("urls.txt")` downloads an image collection from IDA's *Advanced Download* URL list.
+   Run it again at any time: it fetches only what is still missing.
 
-4. **Query.** `data.PPMI()` loads everything into one DuckDB connection:
+   Underneath:
+   - `ida.signin()`, `ida.offer()` and `ida.download(ids)` make the requests IDA's own Study Data page makes;
+   - `ida.collect()` files anything you downloaded in the browser;
+   - `ida.fetch("urls.txt")` downloads an image collection.
+
+3. **Query.** `data.PPMI()` loads everything into one DuckDB connection:
 
    ```python
    import sys; sys.path.append("code")
@@ -93,41 +102,45 @@ PPMI data are not in this repository. Apply for access at [ppmi-info.org](https:
    ```bash
    .venv/bin/python code/data.py                                    # what is loaded
    .venv/bin/python code/data.py "SELECT count(*) FROM clean.patients"
-   .venv/bin/python code/data.py --export ~/ppmi/ppmi.duckdb        # both layers in one file, for any SQL client
+   .venv/bin/python code/data.py --export data/ppmi.duckdb          # both layers in one file, for any SQL client
    ```
 
-5. **Map it.** `notebooks/schema.ipynb` shows how the tables join, which participants and visits they share, and how the clean layer is built from the raw tables.
+4. **Map it.** `notebooks/schema.ipynb` shows how the tables join, which participants and visits they share, and how the clean layer is built from the raw tables.
 
 ### Where the data lives
 
-Downloads stay outside the repository, in `~/ppmi` or the folder named by `PPMI_DATA`:
+Downloads go into `data/` in this repository, which git ignores, or into the folder named by `PPMI_DATA`:
 
 ```
-~/ppmi/
+data/
   study/       study-data CSVs as IDA names them, such as Participant_Status_10Nov2026.csv,
                and the Curated Data Cut workbook
   imaging/     image-search exports (idaSearch_*.csv)
   images/      unpacked DICOM and NIfTI files
-  docs/        PDFs that came in a zip of study tables, such as the LEDD method
+  docs/        PDFs, such as the LEDD method
+  ida/         offer.csv (IDA's list of study files), the URL lists of image collections,
+               and session.txt if you save your IDA session there
   downloads/   the original zips, and image collections fetched from a URL list
 ```
 
-`ida.collect()` reads your Downloads folder, or the folder named by `IDA_DOWNLOADS`.
+`ida.collect()` reads your Downloads folder, or the folder named by `IDA_DOWNLOADS`. Earlier versions kept the data in `~/ppmi`: move it with `mv ~/ppmi/* data/`, or set `PPMI_DATA=~/ppmi`.
+
+Because `data/` sits inside the repository, tell your editor not to index it (in PyCharm, right-click it and choose *Mark Directory as* > *Excluded*). Keep AI coding assistants away from it as well, since the data use agreement forbids applying AI tools to participant-level data.
 
 ### The SQL interface
 
-One in-memory DuckDB connection holds two layers. Nothing is written to disk unless you export it.
+One in-memory DuckDB connection holds two layers. Nothing is written to disk unless you export it. The work is all SQL: pandas only reads Excel workbooks and carries query results back to Python, where `p.sql()` returns a data frame and `p.column()` a list.
 
 | Layer | What it holds |
 |---|---|
-| raw | Every downloaded table as IDA ships it, named after its file in lower case: `Letter_-_Number_Sequencing_10Nov2026.csv` becomes `letter_number_sequencing`, and the newest download of a table wins. The Curated Data Cut workbook loads too, its largest sheet as `ppmi_curated_data_cut_public` (this needs `python-calamine`, which is in `requirements.txt`). Columns are text; the macros `num(x)`, `ppmi_date(x)` and `visit(event)` convert them. Also `images` (image searches), `image_files` (downloaded scans), `catalog`, and the `cognition` view, which stacks the six cognitive tests. |
+| raw | Every downloaded table as IDA ships it, named after its file in lower case: `Letter_-_Number_Sequencing_10Nov2026.csv` becomes `letter_number_sequencing`, and the newest download of a table wins. The Curated Data Cut workbook loads too, its largest sheet as `ppmi_curated_data_cut_public` (this needs `python-calamine`, which is in `requirements.txt`). Columns are text; the macros `num(x)`, `ppmi_date(x)` and `visit(event)` convert them. Also `dictionary` and `dictionary_columns` (the data dictionary, and PPMI's description of every column), `ida_files` (what IDA offers), `downloads` (what the data folder holds), `available` (all three lined up), `images` (image searches), `image_files` (downloaded scans) and the `cognition` view, which stacks the six cognitive tests. |
 | `clean` | Typed, deduplicated tables from `code/ppmi_pipeline`, keyed by `patient_id` and `event_id`: `clean.patients`, `clean.visits`, `clean.cognitive_assessments`, `clean.datscan_scans`, `clean.structural_scans`, `clean.medications`, `clean.ledd_by_visit` (total LEDD per visit), `clean.biospecimen_results` (`p.biospecimens()` pivots it to one column per test), coverage views and cohort lists. See [its README](code/ppmi_pipeline/README.md). |
 
 `p.tables()` lists the tables and `p.schema()` every column in both layers.
 
 ### The atlas
 
-`atlas/index.html` is a guide to PPMI for anyone starting out: the study, the neuroscience, how each measurement is taken, the data (its section 5 goes with `atlas.ipynb` and `dataset.ipynb`, and 5.7 maps this repository and its notebooks), preprocessing raw downloads and images into tables with free tools and platforms (6.5 to 6.8), the literature, the statistics and working under the data use agreement, with interactive explorers. Open it in a browser, or serve it so that its videos and papers open inside the page:
+`atlas/index.html` is a guide to PPMI for anyone starting out: the study, the neuroscience, how each measurement is taken, the data (its section 5 goes with `dataset.ipynb`, and 5.7 maps this repository and its notebooks), preprocessing raw downloads and images into tables with free tools and platforms (6.5 to 6.8), the literature, the statistics and working under the data use agreement, with interactive explorers. Open it in a browser, or serve it so that its videos and papers open inside the page:
 
 ```bash
 python3 -m http.server 8777 --directory atlas
@@ -139,7 +152,7 @@ Then open http://localhost:8777.
 
 The PPMI data use agreement does not allow participant-level data to be shared, and it forbids applying AI tools to individual-level PPMI data. Keep raw data, participant identifiers and individual results out of version control.
 
-The notebooks include reviewed aggregate tables and static plots so their results are visible on GitHub. Preserve these outputs when committing. To refresh them, run the notebooks locally with authorised data access, review the outputs for participant-level information, and save the notebooks before committing and pushing. GitHub displays the saved results; it does not execute cells or refresh results when the code or downloads change.
+Run with authorised data access, the notebooks show aggregate tables and static plots. To publish their results on GitHub, run them locally, review the outputs for participant-level information, save them and commit. GitHub displays the saved results; it does not execute cells or refresh results when the code or downloads change. A notebook saved without outputs has not had a reviewed run committed since its code last changed.
 
 If setup warns that image-search exports were skipped because required columns are missing, empty imaging tables and plots mean coverage is unavailable from those exports, rather than that PPMI has no images. The historical counts in the narrative may differ from a newer saved run.
 

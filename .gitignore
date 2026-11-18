@@ -2,7 +2,9 @@ __pycache__/
 .ipynb_checkpoints/
 .venv/
 
-# PPMI data never belongs in this repository
+# PPMI data never belongs in git. data/ is the data folder: downloads, builds, exports and IDA pages
+# (a saved IDA page holds your session key). The patterns below catch stray copies elsewhere.
+/data/
 *.duckdb
 *.duckdb.wal
 idaSearch*.csv
