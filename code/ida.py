@@ -3,7 +3,7 @@
 IDA has no programming interface for Study Data, so the browser does the ticking and this module does the rest:
 
     ida.browse("study")      opens Download > Study Data in your browser, signed in with your own account
-    ida.collect()            files what you downloaded: study CSVs and zips, image-search CSVs, image zips
+    ida.collect()            files what you downloaded: study CSVs and zips (with their PDFs), image-search CSVs, image zips
     ida.fetch("urls.txt")    downloads an image collection from the URL list that Advanced Download gives
 
 Nothing here reads the contents of a data file except the header line of a CSV, to tell searches from tables.
@@ -54,6 +54,10 @@ def _is_search(columns: list[str]) -> bool:
     return bool({"subject id", "subject"} & set(columns)) and bool({"visit", "modality", "image data id", "image id"} & set(columns))
 
 
+def _is_curated(name: str) -> bool:
+    return name.startswith("PPMI_Curated_Data_Cut") and name.lower().endswith((".xlsx", ".xls"))
+
+
 def _is_image(name: str) -> bool:
     return name.lower().endswith(IMAGES)
 
@@ -90,9 +94,10 @@ def _archive(path: Path, folder: Path, move: bool) -> None:
 
 def collect(source: str | Path | None = None, folder: str | Path | None = None,
             since: datetime | None = None, move: bool = True) -> pd.DataFrame:
-    """File IDA downloads from source (IDA_DOWNLOADS, or ~/Downloads) into study/, imaging/ and images/ of the data folder.
+    """File IDA downloads from source (IDA_DOWNLOADS, or ~/Downloads) into study/, imaging/, images/ and docs/ of the data folder.
 
-    Study CSVs keep IDA's names, zips are unpacked and then kept under downloads/, other files are left alone.
+    Study CSVs keep IDA's names, PDFs that come in a zip of study tables go to docs/, zips are unpacked and then kept
+    under downloads/, and other files are left alone.
     """
     source = Path(source or os.environ.get("IDA_DOWNLOADS", Path.home() / "Downloads")).expanduser()
     folder = root(folder)
@@ -111,19 +116,24 @@ def collect(source: str | Path | None = None, folder: str | Path | None = None,
                 report.append((name, "image search", _place(path, folder / "imaging", move), "imaging"))
             elif DATED.match(name):
                 report.append((name, "study table", _place(path, folder / "study", move), "study"))
-        elif name.lower().endswith((".xlsx", ".xls")) and name.startswith("PPMI_Curated_Data_Cut"):
+        elif _is_curated(name):
             report.append((name, "curated data cut", _place(path, folder / "study", move), "study"))
         elif name.lower().endswith(".zip") and zipfile.is_zipfile(path):
             with zipfile.ZipFile(path) as archive:
                 members = [member for member in archive.namelist() if not member.endswith("/")]
                 images = [member for member in members if _is_image(member)]
-                tables = [member for member in members if DATED.match(Path(member).name)]
+                tables = [member for member in members if DATED.match(Path(member).name) or _is_curated(Path(member).name)]
+                documents = [member for member in members if member.lower().endswith(".pdf")] if tables else []
                 if images:
                     written = _extract(archive, images, folder / "images", flatten=False)
                     report.append((name, "images", f"unpacked {len(written)} of {len(images)} files", "images"))
                 elif tables:
                     written = _extract(archive, tables, folder / "study", flatten=True)
-                    report.append((name, "study tables", f"unpacked {len(written)} of {len(tables)} tables", "study"))
+                    action = f"unpacked {len(written)} of {len(tables)} tables"
+                    if documents:
+                        papers = _extract(archive, documents, folder / "docs", flatten=True)
+                        action += f" and {len(papers)} of {len(documents)} documents"
+                    report.append((name, "study tables", action, "study and docs" if documents else "study"))
                 else:
                     continue
             _archive(path, folder, move)
@@ -154,7 +164,8 @@ def _download(url: str, folder: Path, retries: int) -> Path:
                     raise ConnectionError(f"Transfer of {url} stopped early")
                 final = folder / _filename(response, url)
             partial.rename(final)
-            receipt.write_text(final.name)
+            if zipfile.is_zipfile(final):
+                receipt.write_text(final.name)
             return final
         except (OSError, http.client.HTTPException):
             if attempt == retries - 1:
@@ -176,9 +187,14 @@ def fetch(urls: str | Path | list[str], folder: str | Path | None = None, retrie
     report = []
     for url in urls:
         path = _download(url, downloads, retries)
-        unpacked = 0
-        if zipfile.is_zipfile(path):
-            with zipfile.ZipFile(path) as archive:
-                unpacked = len(_extract(archive, [m for m in archive.namelist() if _is_image(m)], folder / "images", flatten=False))
+        if not zipfile.is_zipfile(path):
+            size = path.stat().st_size
+            path.unlink()
+            warnings.warn(f"{path.name} is not a zip archive, so IDA sent a page instead of data: the link may have expired. "
+                          "Save a new URL list in IDA and run fetch again.")
+            report.append((path.name, size, 0))
+            continue
+        with zipfile.ZipFile(path) as archive:
+            unpacked = len(_extract(archive, [m for m in archive.namelist() if _is_image(m)], folder / "images", flatten=False))
         report.append((path.name, path.stat().st_size, unpacked))
     return pd.DataFrame(report, columns=["file", "bytes", "images unpacked"])

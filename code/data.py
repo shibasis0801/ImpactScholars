@@ -17,6 +17,7 @@ The data folder:
     study/    Study Data CSVs, named as IDA names them, for example Participant_Status_10Nov2026.csv
     imaging/  image-search CSVs from IDA Advanced Search
     images/   unpacked image downloads (ida.collect and ida.fetch put them here)
+    docs/     PDFs that came in a zip of study tables
 
 From a terminal: python code/data.py                     lists what is loaded
                  python code/data.py "SELECT ..."        runs a query
@@ -175,7 +176,7 @@ class PPMI:
         for path in sorted(study.glob("*.zip")):
             self.notes.append(f"{path.name} is still zipped: run ida.collect() or unzip it into study/.")
         for path in sorted(study.glob("*.xls*")):
-            self.notes.append(f"{path.name} is an Excel workbook and is not loaded: read it with pandas.read_excel.")
+            self.notes.append(f"{path.name} is an Excel workbook and is not loaded: read it with pandas.read_excel (pip install openpyxl).")
         missing = [name for name in STUDY if table(name) not in self.files]
         if missing:
             warnings.warn(f"Not downloaded into {study} yet: {', '.join(missing)}. "
@@ -192,7 +193,18 @@ class PPMI:
             self._build_clean()
 
     def _load(self, name: str, path: Path) -> None:
-        self.db.execute(f'CREATE OR REPLACE TABLE "{name}" AS SELECT * FROM read_csv(?, all_varchar = true)', [str(path)])
+        for encoding in ("utf-8", "latin-1"):
+            try:
+                self.db.execute(f"""CREATE OR REPLACE TABLE "{name}" AS SELECT * FROM read_csv(?, all_varchar = true, encoding = '{encoding}')""",
+                                [str(path)])
+                break
+            except duckdb.Error as error:
+                failure = error
+        else:
+            self.notes.append(f"{path.name} could not be read ({type(failure).__name__}) and is not loaded.")
+            return
+        if encoding != "utf-8":
+            self.notes.append(f"{path.name} is not UTF-8, so it was read as Latin-1.")
         columns = self.db.table(name).columns
         if "PATNO" in columns:
             self.db.execute(f"""UPDATE "{name}" SET PATNO = regexp_replace(trim(PATNO), '\\.0+$', '')""")
@@ -259,6 +271,7 @@ class PPMI:
 
     def inventory(self) -> pd.DataFrame:
         """The catalogue, with what is downloaded: one row per kind of data, plus downloads not in the catalogue."""
+        listed = catalog()
         found = []
         for name, path in self.paths.items():
             columns = self.db.table(name).columns
@@ -277,18 +290,24 @@ class PPMI:
             if rows:
                 found.append({"table": f"image_files: {dataset}", "downloaded": f"{rows:,} image series", "release": None,
                               "rows": rows, "participants": participants, "columns": len(IMAGE_COLUMNS)})
-        rows = catalog()
-        rows["table"] = [
+        workbooks = {}
+        for path in sorted((self.root / "study").glob("*.xls*")):
+            stem = next((file for file in listed.file if file and path.name.startswith(file)), path.stem)
+            workbooks[table(stem)] = path.name
+        found += [{"table": name, "downloaded": file, "release": None, "rows": None, "participants": None, "columns": None}
+                  for name, file in workbooks.items()]
+        listed["table"] = [
             "images" if kind == "imaging table" and group == "Image Collections" else
             f"image_files: {dataset}" if kind == "images" else table(file or dataset)
-            for kind, group, file, dataset in zip(rows.kind, rows.group, rows.file, rows.dataset)
+            for kind, group, file, dataset in zip(listed.kind, listed.group, listed.file, listed.dataset)
         ]
         local = pd.DataFrame(found, columns=["table", "downloaded", "release", "rows", "participants", "columns"])
-        merged = rows.merge(local, on="table", how="outer")
+        merged = listed.merge(local, on="table", how="outer")
         extra = merged.group.isna()
         merged.loc[extra, ["group", "subgroup", "dataset", "kind", "format"]] = ["Other downloads", "", "", "other table", "csv"]
         merged.loc[extra, "dataset"] = merged.loc[extra, "downloaded"]
         merged = merged.fillna({"downloaded": "", "project": "", "keys": "", "notes": "", "file": ""})
+        merged.loc[extra & merged.downloaded.str.lower().str.endswith((".xlsx", ".xls")), "format"] = "xlsx"
         merged[["rows", "participants", "columns"]] = merged[["rows", "participants", "columns"]].astype("Int64")
         return merged[["group", "subgroup", "dataset", "kind", "format", "keys", "project", "table",
                        "downloaded", "release", "rows", "participants", "columns", "notes"]]

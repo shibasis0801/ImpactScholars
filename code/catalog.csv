@@ -8,9 +8,9 @@ Study Docs,Study Data Request Forms,Data request forms and PPMI Data Access Guid
 Study Docs,Study Methods,Method for calculating Levodopa Equivalent Dose,document,pdf,,,recommended,How LEDD is derived; needed with the LEDD medication log
 Study Docs,Study Protocol & CRFs,Study CRFs and Assessments,document,pdf,,,,Case report forms and questionnaires behind every table
 Subject Characteristics,Family History,Family History,participant table,csv,PATNO,,,Parkinson's disease in relatives
-Subject Characteristics,Genetic Status,Consensus APOE,participant table,csv,PATNO,,,APOE genotype
+Subject Characteristics,Genetic Status,Consensus APOE,participant table,csv,PATNO,,recommended,APOE genotype
 Subject Characteristics,Genetic Status,Polygenic risk score,participant table,csv,PATNO,,,Genetic principal components and polygenic risk score
-Subject Characteristics,Genetic Status,Participant Genetic Status,participant table,csv,PATNO,,,"Pathogenic variant status (LRRK2, GBA, SNCA and others)"
+Subject Characteristics,Genetic Status,Participant Genetic Status,participant table,csv,PATNO,,recommended,"Pathogenic variant status (LRRK2, GBA, SNCA and others)"
 Subject Characteristics,Patient Status,Participant Status,participant table,csv,PATNO,Participant_Status,core,"Cohort, enrolment status and date, genetic enrolment subgroup; the table every analysis starts from"
 Subject Characteristics,Subject Demographics,Age at visit,visit table,csv,"PATNO, EVENT_ID",Age_at_visit,core,Age at every visit
 Subject Characteristics,Subject Demographics,Demographics,participant table,csv,PATNO,Demographics,core,"Sex, handedness, race and ethnicity"

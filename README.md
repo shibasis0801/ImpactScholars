@@ -53,6 +53,7 @@ code/data.py              loads your IDA downloads into one DuckDB connection
 code/ida.py               opens IDA, files your downloads, fetches image collections
 code/ppmi_pipeline/       the clean layer: typed tables, coverage views and cohort lists
 code/plot.py              figures for the notebooks
+notebooks/atlas.ipynb     fetches the whole data set from IDA, step by step, and checks it
 notebooks/dataset.ipynb   what data exists, what you have, and how to get the rest
 notebooks/schema.ipynb    how the tables relate: keys, shared participants, visits, lineage
 notebooks/data.ipynb      what to download from IDA, and the data explained
@@ -75,7 +76,7 @@ PPMI data are not in this repository. Apply for access at [ppmi-info.org](https:
 
 2. **See what exists.** Open `notebooks/dataset.ipynb` with `.venv/bin/jupyter lab notebooks/dataset.ipynb`. It lists everything IDA offers from `code/catalog.csv`, marks what this project uses, and compares that with what you have downloaded.
 
-3. **Download.** IDA has no programming interface for study data, so the notebook opens the right IDA page and you tick the tables there. `ida.collect()` then files the downloads from your Downloads folder into the data folder. For an image collection, save IDA's *Advanced Download* URL list and run `ida.fetch("urls.txt")`.
+3. **Download.** Run `notebooks/atlas.ipynb` on your own machine. It lists every file the project uses, opens the right IDA page for each step, waits while you tick and download there, then files and checks what arrived. Run it again at any time: it asks only for what is still missing. IDA has no programming interface for study data, so the ticking happens in the browser. Underneath, `ida.collect()` files the downloads from your Downloads folder into the data folder, and `ida.fetch("urls.txt")` downloads an image collection from IDA's *Advanced Download* URL list.
 
 4. **Query.** `data.PPMI()` loads everything into one DuckDB connection:
 
@@ -103,9 +104,11 @@ Downloads stay outside the repository, in `~/ppmi` or the folder named by `PPMI_
 
 ```
 ~/ppmi/
-  study/       study-data CSVs as IDA names them, such as Participant_Status_10Nov2026.csv
+  study/       study-data CSVs as IDA names them, such as Participant_Status_10Nov2026.csv,
+               and the Curated Data Cut workbook
   imaging/     image-search exports (idaSearch_*.csv)
   images/      unpacked DICOM and NIfTI files
+  docs/        PDFs that came in a zip of study tables, such as the LEDD method
   downloads/   the original zips, and image collections fetched from a URL list
 ```
 
@@ -124,7 +127,7 @@ One in-memory DuckDB connection holds two layers. Nothing is written to disk unl
 
 ### The atlas
 
-`atlas/index.html` is a guide to PPMI for anyone starting out: the study, the neuroscience, how each measurement is taken, the data (its section 5 goes with `dataset.ipynb`), the literature, the statistics and working under the data use agreement, with interactive explorers. Open it in a browser, or serve it so that its videos and papers open inside the page:
+`atlas/index.html` is a guide to PPMI for anyone starting out: the study, the neuroscience, how each measurement is taken, the data (its section 5 goes with `atlas.ipynb` and `dataset.ipynb`), the literature, the statistics and working under the data use agreement, with interactive explorers. Open it in a browser, or serve it so that its videos and papers open inside the page:
 
 ```bash
 python3 -m http.server 8777 --directory atlas
