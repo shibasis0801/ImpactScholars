@@ -28,7 +28,7 @@ Biospecimen,Lab Collection Procedures,Lab procedures (various),document,pdf,,,,"
 Biospecimen,Metabolomic Analysis,Metabolomic results (various),biospecimen table,csv,"PATNO, CLINICAL_EVENT",,,Metabolomic tests and results
 Biospecimen,Neuropathology results,Neuropathology results,biospecimen table,csv,PATNO,,,Post-mortem examination results
 Biospecimen,Proteomic Analysis,Proteomic results (various),biospecimen table,csv,"PATNO, CLINICAL_EVENT",,,Proteomic tests and results
-Curated Data Cuts,Curated Data Cuts,PPMI Curated Data Cut (Public),curated table,xlsx,"PATNO, EVENT_ID",PPMI_Curated_Data_Cut_Public,recommended,"One merged table of frequently used variables (about 160 columns): cohort, NSD stage, LEDD, cognition, MDS-UPDRS, milestones, CSF, DaTscan; use it to cross-check the pipeline"
+Curated Data Cuts,Curated Data Cuts,PPMI Curated Data Cut (Public),curated table,xlsx,"PATNO, EVENT_ID",PPMI_Curated_Data_Cut_Public,recommended,"One merged table of frequently used variables at baseline and annual visits (215 columns in the August 2026 extract): cohort, NSD stage, LEDD, cognition and PPMI's CSS, MDS-UPDRS, milestones, CSF, DaTscan; curated_check compares it with the clean layer"
 Digital Sensor,Roche Smartphone App,Roche PD Monitoring App data and methods,sensor data,csv,PATNO,,,Smartphone motor and voice tasks for selected participants
 Digital Sensor,Verily Study Watch,Verily Study Watch derived data,sensor data,csv,PATNO,,,Wearable-derived activity and sleep measures
 Enrollment,Subject Enrollment,Enrollment records (various),participant table,csv,PATNO,,,"Consent, sub-study participation and other enrolment records"

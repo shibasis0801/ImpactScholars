@@ -49,13 +49,14 @@ Run on downloads from September to November 2026, it found:
 atlas/index.html          the PPMI atlas: the study, the science, the data and the methods
 atlas/src/                its sources; python3 atlas/src/build.py rebuilds it
 code/catalog.csv          the data dictionary: every kind of PPMI data, with format, keys and file name
+code/curated_map.csv      which Curated Data Cut column matches which measure here, and how closely
 code/data.py              loads the data folder into one DuckDB connection, queried with SQL
 code/ida.py               lists and downloads IDA's study data with your browser's session, files downloads, fetches image collections
 code/ppmi_pipeline/       the clean layer: typed tables, coverage views and cohort lists
 code/plot.py              figures for the notebooks, drawn from query results
 notebooks/dataset.ipynb   gets the data: the dictionary, what IDA offers, a SQL choice, the download, images and a check
 notebooks/schema.ipynb    how the tables relate: keys, shared participants, visits, lineage
-notebooks/data.ipynb      the core tables explained
+notebooks/data.ipynb      the core tables explained, and the check against the Curated Data Cut
 notebooks/audit.ipynb     the preliminary data audit
 literature/               open-access papers cited below
 data/                     your PPMI data, which git ignores (see below)
@@ -133,10 +134,29 @@ One in-memory DuckDB connection holds two layers. Nothing is written to disk unl
 
 | Layer | What it holds |
 |---|---|
-| raw | Every downloaded table as IDA ships it, named after its file in lower case: `Letter_-_Number_Sequencing_10Nov2026.csv` becomes `letter_number_sequencing`, and the newest download of a table wins. The Curated Data Cut workbook loads too, its largest sheet as `ppmi_curated_data_cut_public` and its other tabs, the data dictionary among them, as `ppmi_curated_data_cut_public_<tab>`; with several extracts, the newest by the date in its file name wins (this needs `python-calamine`, which is in `requirements.txt`). Columns are text; the macros `num(x)`, `ppmi_date(x)` and `visit(event)` convert them. Also `dictionary` and `dictionary_columns` (the data dictionary, and PPMI's description of every column), `ida_files` (what IDA offers), `downloads` (what the data folder holds), `available` (all three lined up), `images` (image searches), `image_files` (downloaded scans) and the `cognition` view, which stacks the six cognitive tests. |
+| raw | Every downloaded table as IDA ships it, named after its file in lower case: `Letter_-_Number_Sequencing_10Nov2026.csv` becomes `letter_number_sequencing`, and the newest download of a table wins. The Curated Data Cut workbook loads too, its largest sheet as `ppmi_curated_data_cut_public` and its other tabs, the data dictionary among them, as `ppmi_curated_data_cut_public_<tab>`; with several extracts, the newest by the date in its file name wins (this needs `python-calamine`, which is in `requirements.txt`). Columns are text; the macros `num(x)`, `ppmi_date(x)` and `visit(event)` convert them. Also `dictionary` and `dictionary_columns` (the data dictionary, and PPMI's description of every column), `ida_files` (what IDA offers), `downloads` (what the data folder holds), `available` (all three lined up), `images` (image searches), `image_files` (downloaded scans), the `cognition` view, which stacks the six cognitive tests, and `curated_map`, `curated_pairs` and `curated_check`, which line the clean layer up with the Curated Data Cut (below). |
 | `clean` | Typed, deduplicated tables from `code/ppmi_pipeline`, keyed by `patient_id` and `event_id`: `clean.patients`, `clean.visits`, `clean.cognitive_assessments`, `clean.datscan_scans`, `clean.structural_scans`, `clean.medications`, `clean.ledd_by_visit` (total LEDD per visit), `clean.biospecimen_results` (`p.biospecimens()` pivots it to one column per test), coverage views and cohort lists. See [its README](code/ppmi_pipeline/README.md). |
 
 `p.tables()` lists the tables and `p.schema()` every column in both layers.
+
+### The Curated Data Cut
+
+PPMI's Curated Data Cut (`PPMI_Curated_Data_Cut_Public_YYYYMMDD.xlsx`) is one table of frequently used variables, with one row per enrolled participant at baseline and each annual visit; the August 2026 extract has 215 columns. Put it in `data/study/` and `data.PPMI` loads it, with its data dictionary tab. [`code/curated_map.csv`](code/curated_map.csv), loaded as `curated_map`, maps its columns to the measures here:
+
+| Here | In the cut | How they compare |
+|---|---|---|
+| Cohort, sex, age at visit | `COHORT`, `SEX`, `age_at_visit` | The same; the cut computes age from the birth date |
+| Years of education | `EDUCYRS` | Capped at 20 in the cut |
+| The six CSS tests | `hvlt_immediaterecall`, `HVLTRDLY`, `bjlot`, `lns`, `SDMTOTAL`, `VLTANIM` | The same raw scores |
+| CSS | `COG_COMPOSITE_INT` | PPMI's own CSS from the same paper, with norms from PPMI's healthy controls; `COG_COMPOSITE_EXT` uses published norms |
+| MoCA | `moca` | The cut adds a point for 12 or fewer years of education |
+| MDS-UPDRS III, Hoehn and Yahr | `updrs3_score`, `updrs3_score_on`, `NHY`, `NHY_ON` | The same, split into OFF and ON; an untreated visit counts as both |
+| LEDD | `LEDD` | Close: COMT inhibitors and the visit window are handled differently |
+| DaTscan SBRs (D) | `MIA_CAUDATE_L`, `MIA_CAUDATE_R`, `MIA_PUTAMEN_L`, `MIA_PUTAMEN_R` | The same Xing ratios against cerebral white matter; the screening scan sits on the baseline row |
+| Grey-matter volume (S) | none | The cut has no MRI measures |
+| Serum and CSF NfL | `nfl_serum`, `NFL_CSF` | The same project and test |
+
+Only the cut has seed amplification status, NSD stage, progression milestones, the investigator's cognitive diagnosis, MDS-UPDRS parts I, II and IV, the tremor-dominant and postural-gait subtype, and APOE. `curated_check` counts, for each measure, the visits where both sides have a value and where they agree; `notebooks/data.ipynb` shows it and compares the CSS with `COG_COMPOSITE_INT`.
 
 ### The atlas
 

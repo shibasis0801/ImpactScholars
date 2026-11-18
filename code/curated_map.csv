@@ -1,0 +1,37 @@
+measure,domain,ours,cut,compare,tolerance,note
+cohort,Participants,clean.patients.cohort,COHORT,same,0,"The cut codes cohort as a number: 1 PD, 2 healthy control, 3 SWEDD, 4 prodromal. Its subgroup and analytic_subgroup columns add the genetic and prodromal subgroups."
+sex,Participants,clean.patients.sex_code,SEX,same,0,"0 female and 1 male in both. The CSS models code sex as 2 and 1."
+education,Participants,clean.patients.education_years,EDUCYRS,close,0,"The cut caps years of education at 20; the clean layer keeps the reported value."
+age,Visits,clean.visits.age_years,age_at_visit,close,0.1,"The clean layer reads IDA's Age_at_visit table; the cut subtracts the birth date from the visit date."
+hvlt_immediate,Cognition,clean.cognition_by_visit.hvlt_immediate,hvlt_immediaterecall,same,0,"Words recalled over the three learning trials."
+hvlt_delayed,Cognition,clean.cognition_by_visit.hvlt_delayed,HVLTRDLY,same,0,
+jlo,Cognition,clean.cognition_by_visit.jlo,bjlot,same,0,"Both are the raw score out of 15: JLO_TOTRAW, which the cut gets by adding up the items."
+lns,Cognition,clean.cognition_by_visit.lns,lns,same,0,
+sdmt,Cognition,clean.cognition_by_visit.sdmt,SDMTOTAL,same,0,
+semantic,Cognition,clean.cognition_by_visit.semantic,VLTANIM,same,0,"Animals named in one minute."
+css,Cognition,css_scores.css after css.add_css_view,COG_COMPOSITE_INT,close,0.01,"PPMI's own Cognitive Summary Score: the same six tests and the same paper (Weintraub et al. 2025), with norms from PPMI's healthy controls. COG_COMPOSITE_EXT uses published norms instead. notebooks/data.ipynb compares the two."
+moca,Cognition,clean.neurological_exams.total_score where exam is MoCA,moca,close,0,"The cut adds a point when education is 12 years or less and the score is below 30; check whether MCATOT already includes it."
+cognitive_diagnosis,Cognition,,"cogstate, MCI_testscores",cut only,,"The site investigator's diagnosis (normal, MCI or dementia), and MCI from test scores: two or more tests 1.5 SD below norms."
+other_cognition,Cognition,,"lexical, MODBNT, TMT_A, TMT_B, clockdraw, DVT_*, DVS_*",cut only,,"Tests outside the CSS, and normed t-scores and scaled scores for each test."
+updrs3_off,Motor,clean.neurological_exams.total_score where exam is MDS-UPDRS III and the state is OFF or blank,updrs3_score,same,0,"The cut's OFF score includes untreated participants."
+updrs3_on,Motor,clean.neurological_exams.total_score where exam is MDS-UPDRS III and the state is ON or blank,updrs3_score_on,same,0,"The cut's ON score includes untreated participants as well."
+hoehn_yahr_off,Motor,clean.neurological_exams.hoehn_yahr with the state OFF or blank,NHY,same,0,"hy and hy_on group stages 3 to 5 together."
+hoehn_yahr_on,Motor,clean.neurological_exams.hoehn_yahr with the state ON or blank,NHY_ON,same,0,
+other_motor,Motor,,"updrs1_score, updrs2_score, updrs4_score, updrs_totscore, td_pigd, pigd",cut only,,"MDS-UPDRS parts I, II and IV, totals, and tremor-dominant vs postural-gait subtype."
+ledd,Treatment,clean.ledd_by_visit.ledd_total,LEDD,close,1,"Both add up the medication log's LEDD. The cut gives a COMT inhibitor 0.5 or 0.3 of the levodopa dose and the clean layer the fraction written in the log; the clean layer counts the drugs taken in the visit's month."
+treated,Treatment,,PDTRTMNT,cut only,,"Whether the participant was on dopaminergic drugs or DBS at the motor exam."
+caudate_l,DaTscan (D),clean.datscan_scans.caudate_l where sbr_method is xing_cwm,MIA_CAUDATE_L,same,0.001,"Both are Xing's MIAKAT ratios against cerebral white matter. The cut has no screening visits, so curated_check puts a screening scan on the baseline row."
+caudate_r,DaTscan (D),clean.datscan_scans.caudate_r where sbr_method is xing_cwm,MIA_CAUDATE_R,same,0.001,
+putamen_l,DaTscan (D),clean.datscan_scans.putamen_l where sbr_method is xing_cwm,MIA_PUTAMEN_L,same,0.001,
+putamen_r,DaTscan (D),clean.datscan_scans.putamen_r where sbr_method is xing_cwm,MIA_PUTAMEN_R,same,0.001,
+datscan_summaries,DaTscan (D),,"MIA_*_BILAT, MIA_STRIATUM_*, mia_lowput_expected, Stage_D, age_DATSCAN",cut only,,"Bilateral and striatal ratios, and the lowest putamen ratio over the value expected for age and sex; below 0.75 counts as a dopamine transporter deficit (Stage_D)."
+datscan_invicro,DaTscan (D),clean.datscan_scans where sbr_method is invicro_occipital,,ours only,,"The archived Invicro ratios use an occipital reference. Never pool them with the Xing ratios."
+grey_matter_volume,MRI (S),clean.structural_scans.gm_volume,,ours only,,"The cut has no MRI measures, so S comes from the MRI tables or the raw T1 scans."
+nfl_serum,Biospecimens,clean.biospecimen_results: project 144 and test NfL,nfl_serum,same,0.001,
+nfl_csf,Biospecimens,clean.biospecimen_results: project 152 and test NFL,NFL_CSF,same,0.001,
+csf_ad_markers,Biospecimens,clean.biospecimen_results: projects 125 and 159,"abeta, tau, ptau",close,,"For each marker the cut averages projects 125 and 159 after dropping values outside the assay's limits; p.biospecimens() leaves that choice to you."
+saa,Biospecimens,,"CSFSAA, CSFSAA_assay",cut only,,"Seed amplification results from SAA_Biospecimen_Analysis_Results, which the clean layer does not read; the cut keeps the newest assay at each visit."
+apoe,Genetics,,"APOE, APOE_e4",cut only,,"From PPMI's genetic consensus file."
+nsd_stage,Staging,,"NSD_Status, NSD_STAGE, Stage_S, Stage_D, Stage_G, Clinical_Stage",cut only,,"Neuronal alpha-synuclein disease status and stage (Simuni et al. 2024)."
+milestones,Outcomes,,pm_*,cut only,,"Progression milestones (Brumm et al. 2023), any and by domain."
+vital_status,Outcomes,,"Death_Status, age_death",cut only,,

@@ -16,6 +16,8 @@ The connection holds two layers:
             ida.offer() saves); what is in the data folder (downloads); all three lined up (available);
             images (image searches), image_files (downloaded images) and the cognition view.
             An Excel workbook such as the Curated Data Cut loads too: its largest sheet under the file's name.
+            curated_map says which column of the Curated Data Cut matches which clean-layer measure, and
+            curated_check shows how far the two agree, measure by measure.
     clean   the pipeline in ppmi_pipeline/: typed, deduplicated tables such as clean.patients,
             clean.visits, clean.cognitive_assessments, clean.datscan_scans, clean.structural_scans,
             clean.ledd_by_visit and clean.biospecimen_results; p.biospecimens() pivots the last one
@@ -51,6 +53,7 @@ HERE = Path(__file__).resolve().parent
 REPOSITORY = HERE.parent
 DATA = REPOSITORY / "data"
 DICTIONARY = HERE / "catalog.csv"
+CURATED_MAP = HERE / "curated_map.csv"
 
 STUDY = [
     "Participant_Status",
@@ -156,6 +159,75 @@ SELECT coalesce("group", ida_group, 'Other downloads') AS "group",
 FROM lined ORDER BY "table", entry NULLS LAST
 """
 
+# The clean layer's value of every measure that curated_map compares, at each visit of the Curated Data Cut. The cut has
+# no screening visits, so a screening DaTscan goes on the baseline row; single() keeps a value only if a visit has one.
+CURATED_OURS = """
+CREATE OR REPLACE TEMP MACRO single(x) AS CASE WHEN count(DISTINCT x) = 1 THEN min(x) END;
+CREATE OR REPLACE TEMP TABLE curated_ours AS
+WITH visits AS (
+    SELECT DISTINCT PATNO AS patient_id, EVENT_ID AS event_id FROM ppmi_curated_data_cut_public
+), exams AS (
+    SELECT patient_id, event_id,
+           single(CASE WHEN exam = 'MDS-UPDRS III' AND state <> 'ON' THEN total_score END) AS updrs3_off,
+           single(CASE WHEN exam = 'MDS-UPDRS III' AND state <> 'OFF' THEN total_score END) AS updrs3_on,
+           single(CASE WHEN exam = 'MDS-UPDRS III' AND state <> 'ON' THEN hoehn_yahr END) AS hoehn_yahr_off,
+           single(CASE WHEN exam = 'MDS-UPDRS III' AND state <> 'OFF' THEN hoehn_yahr END) AS hoehn_yahr_on,
+           single(CASE WHEN exam = 'MoCA' THEN total_score END) AS moca
+    FROM (SELECT *, coalesce(upper(medication_state_code), '') AS state FROM clean.neurological_exams)
+    GROUP BY patient_id, event_id
+), datscan AS (
+    SELECT patient_id, visit(event_id) AS event_id, single(caudate_l) AS caudate_l, single(caudate_r) AS caudate_r,
+           single(putamen_l) AS putamen_l, single(putamen_r) AS putamen_r
+    FROM clean.datscan_scans WHERE sbr_method = 'xing_cwm' AND is_eligible_datscan
+    GROUP BY patient_id, visit(event_id)
+), fluids AS (
+    SELECT patient_id, event_id,
+           median(value) FILTER (project_id = '144' AND lower(test_name) = 'nfl') AS nfl_serum,
+           median(value) FILTER (project_id = '152' AND lower(test_name) = 'nfl') AS nfl_csf
+    FROM clean.biospecimen_results GROUP BY patient_id, event_id
+), wide AS (
+    SELECT v.patient_id, v.event_id,
+           CASE lower(p.cohort) WHEN 'parkinson''s disease' THEN 1 WHEN 'healthy control' THEN 2 WHEN 'swedd' THEN 3
+                                WHEN 'prodromal' THEN 4 END AS cohort,
+           num(p.sex_code) AS sex, p.education_years AS education, a.age_years AS age,
+           g.hvlt_immediate, g.hvlt_delayed, g.jlo, g.lns, g.sdmt, g.semantic, e.moca,
+           e.updrs3_off, e.updrs3_on, e.hoehn_yahr_off, e.hoehn_yahr_on, l.ledd_total AS ledd,
+           d.caudate_l, d.caudate_r, d.putamen_l, d.putamen_r, f.nfl_serum, f.nfl_csf
+    FROM visits v
+    LEFT JOIN clean.patients p USING (patient_id)
+    LEFT JOIN clean.visits a USING (patient_id, event_id)
+    LEFT JOIN clean.cognition_by_visit g USING (patient_id, event_id)
+    LEFT JOIN exams e USING (patient_id, event_id)
+    LEFT JOIN clean.ledd_by_visit l USING (patient_id, event_id)
+    LEFT JOIN datscan d USING (patient_id, event_id)
+    LEFT JOIN fluids f USING (patient_id, event_id)
+)
+SELECT * FROM (SELECT patient_id, event_id, COLUMNS(* EXCLUDE (patient_id, event_id))::DOUBLE FROM wide)
+UNPIVOT INCLUDE NULLS (ours FOR measure IN (cohort, sex, education, age, hvlt_immediate, hvlt_delayed, jlo, lns, sdmt,
+    semantic, moca, updrs3_off, updrs3_on, hoehn_yahr_off, hoehn_yahr_on, ledd, caudate_l, caudate_r, putamen_l, putamen_r,
+    nfl_serum, nfl_csf));
+DROP MACRO single;
+"""
+
+# One row per measure and visit of the cut, with our value and the cut's (curated_pairs), and how far they agree.
+CURATED_PAIRS = """
+CREATE OR REPLACE TABLE curated_pairs AS
+SELECT m.measure, c.patient_id, c.event_id, o.ours, num(c.value) AS cut
+FROM curated_map m
+JOIN curated_cut c ON lower(c."column") = lower(m.cut)
+JOIN curated_ours o ON o.measure = m.measure AND o.patient_id = c.patient_id AND o.event_id = c.event_id
+"""
+CURATED_CHECK = """
+CREATE OR REPLACE TABLE curated_check AS
+SELECT m.domain, m.measure, m.ours, m.cut, m.compare,
+       count(p.cut) AS in_cut, count(p.ours) AS in_ours, count(p.cut + p.ours) AS in_both,
+       count(*) FILTER (abs(p.ours - p.cut) <= m.tolerance + 1e-9) AS agree,
+       median(abs(p.ours - p.cut)) AS median_difference, max(abs(p.ours - p.cut)) AS largest_difference
+FROM curated_map m JOIN curated_pairs p USING (measure)
+GROUP BY m.entry, m.domain, m.measure, m.ours, m.cut, m.compare
+ORDER BY m.entry
+"""
+
 # Every column of every table in PPMI's Data Dictionary (Annotated), and every column of the tables you loaded.
 DICTIONARY_COLUMNS = """
 CREATE OR REPLACE TABLE dictionary_columns AS
@@ -236,6 +308,7 @@ class PPMI:
         self.clean_error = None
         self.db.execute(MACROS)
         self._load_dictionary()
+        self._load_map()
         study = self.root / "study"
         for path in sorted(study.glob("*.csv"), key=lambda path: release(path)[1]):
             self._load(table(release(path)[0]), path)
@@ -258,12 +331,20 @@ class PPMI:
         self._line_up()
         if clean:
             self._build_clean()
+        self._check_curated()
 
     def _load_dictionary(self) -> None:
         names = [row[0] for row in self.db.execute("DESCRIBE SELECT * FROM read_csv(?, all_varchar = true)", [str(DICTIONARY)]).fetchall()]
         columns = ", ".join(f"coalesce({quoted(name)}, '') AS {quoted(name)}" for name in names)
         self.db.execute(f"CREATE OR REPLACE TABLE dictionary AS SELECT row_number() OVER () AS entry, {columns} "
                         "FROM read_csv(?, all_varchar = true)", [str(DICTIONARY)])
+
+    def _load_map(self) -> None:
+        """curated_map: which column of the Curated Data Cut matches which clean-layer measure, and how closely."""
+        self.db.execute("""CREATE OR REPLACE TABLE curated_map AS
+            SELECT row_number() OVER () AS entry, measure, domain, coalesce(ours, '') AS ours, coalesce(cut, '') AS cut,
+                   compare, TRY_CAST(tolerance AS DOUBLE) AS tolerance, coalesce(note, '') AS note
+            FROM read_csv(?, header = true, all_varchar = true)""", [str(CURATED_MAP)])
 
     def _dictionary_file(self, filename: str) -> str | None:
         """The dictionary's file name that a download's name starts with, if any."""
@@ -441,6 +522,30 @@ class PPMI:
                 UNION ALL SELECT 'TABLE', table_name FROM duckdb_tables() WHERE temporary
             """).fetchall():
                 self.db.execute(f'DROP {kind} IF EXISTS temp.main."{name}"')
+
+    def _check_curated(self) -> None:
+        """curated_pairs and curated_check: the clean layer against the Curated Data Cut, for each measure in curated_map.
+        Both stay empty until the cut and the clean layer are loaded."""
+        self.db.execute("""CREATE OR REPLACE TABLE curated_pairs (
+            measure VARCHAR, patient_id VARCHAR, event_id VARCHAR, ours DOUBLE, cut DOUBLE)""")
+        cut = "ppmi_curated_data_cut_public"
+        has_clean = self.column("SELECT count(*) FROM duckdb_databases() WHERE database_name = 'clean'")[0]
+        present = {name.lower(): name for name in self.db.table(cut).columns} if cut in self.files else {}
+        if has_clean and {"patno", "event_id"} <= set(present):
+            wanted = self.column("""SELECT DISTINCT cut FROM curated_map
+                WHERE compare IN ('same', 'close') AND regexp_matches(cut, '^[A-Za-z_][A-Za-z0-9_]*$') ORDER BY cut""")
+            missing = [name for name in wanted if name.lower() not in present]
+            if missing:
+                self.notes.append(f"{self.files[cut]} has no {', '.join(missing)} column, so curated_check leaves them out.")
+            columns = ", ".join(quoted(present[name.lower()]) for name in wanted if name.lower() in present)
+            if columns:
+                self.db.execute(CURATED_OURS)
+                self.db.execute(f"""CREATE OR REPLACE TEMP TABLE curated_cut AS
+                    SELECT * FROM (SELECT PATNO AS patient_id, EVENT_ID AS event_id, {columns} FROM {cut})
+                    UNPIVOT INCLUDE NULLS (value FOR "column" IN ({columns}))""")
+                self.db.execute(CURATED_PAIRS)
+                self.db.execute("DROP TABLE temp.main.curated_ours; DROP TABLE temp.main.curated_cut")
+        self.db.execute(CURATED_CHECK)
 
     def sql(self, query: str, *params) -> pd.DataFrame:
         try:
