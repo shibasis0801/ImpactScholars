@@ -1,0 +1,872 @@
+[
+ {
+  "id": "yt-7upHDhAmkqU",
+  "kind": "video",
+  "title": "2-Minute Neuroscience: Parkinson's Disease",
+  "source": "Neuroscientifically Challenged",
+  "year": 2016,
+  "url": "https://www.youtube.com/watch?v=7upHDhAmkqU",
+  "embed": "https://www.youtube-nocookie.com/embed/7upHDhAmkqU",
+  "frameable": true,
+  "sections": [
+   "31-what-goes-wrong"
+  ],
+  "minutes": 2.0,
+  "why": "A two-minute primer on dopamine neuron loss, symptoms and L-DOPA.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-cRLB7WqX0fU",
+  "kind": "video",
+  "title": "What is Parkinson's Disease?",
+  "source": "The Michael J. Fox Foundation for Parkinson's Research",
+  "year": 2017,
+  "url": "https://www.youtube.com/watch?v=cRLB7WqX0fU",
+  "embed": "https://www.youtube-nocookie.com/embed/cRLB7WqX0fU",
+  "frameable": true,
+  "sections": [
+   "31-what-goes-wrong"
+  ],
+  "minutes": 5.3,
+  "why": "The funder of PPMI explains the disease in plain language, useful before the technical material.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-u5MARR2GiBg",
+  "kind": "video",
+  "title": "Questioning the Braak hypothesis in Parkinson's disease",
+  "source": "VJNeurology",
+  "year": 2020,
+  "url": "https://www.youtube.com/watch?v=u5MARR2GiBg",
+  "embed": "https://www.youtube-nocookie.com/embed/u5MARR2GiBg",
+  "frameable": true,
+  "sections": [
+   "31-what-goes-wrong"
+  ],
+  "minutes": 3.7,
+  "why": "A short expert discussion of what Braak staging does and does not tell us.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-JJ6YB4674GQ",
+  "kind": "video",
+  "title": "2-Minute Neuroscience: Substantia Nigra",
+  "source": "Neuroscientifically Challenged",
+  "year": 2016,
+  "url": "https://www.youtube.com/watch?v=JJ6YB4674GQ",
+  "embed": "https://www.youtube-nocookie.com/embed/JJ6YB4674GQ",
+  "frameable": true,
+  "sections": [
+   "32-the-nigrostriatal-dopamine-system"
+  ],
+  "minutes": 2.0,
+  "why": "Shows where the substantia nigra sits and why its dopamine cells matter for movement.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-c-mhDChCD4Y",
+  "kind": "video",
+  "title": "2-Minute Neuroscience: Direct Pathway of the Basal Ganglia",
+  "source": "Neuroscientifically Challenged",
+  "year": 2020,
+  "url": "https://www.youtube.com/watch?v=c-mhDChCD4Y",
+  "embed": "https://www.youtube-nocookie.com/embed/c-mhDChCD4Y",
+  "frameable": true,
+  "sections": [
+   "33-the-basal-ganglia-circuits"
+  ],
+  "minutes": 2.0,
+  "why": "Quick explanation of the circuit that promotes movement.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-RzcXkvxXKEQ",
+  "kind": "video",
+  "title": "2-Minute Neuroscience: Indirect Pathway of the Basal Ganglia",
+  "source": "Neuroscientifically Challenged",
+  "year": 2020,
+  "url": "https://www.youtube.com/watch?v=RzcXkvxXKEQ",
+  "embed": "https://www.youtube-nocookie.com/embed/RzcXkvxXKEQ",
+  "frameable": true,
+  "sections": [
+   "33-the-basal-ganglia-circuits"
+  ],
+  "minutes": 2.0,
+  "why": "Companion to the direct-pathway video, covering the circuit that suppresses movement.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-APXYe_P1BLA",
+  "kind": "video",
+  "title": "20.6 Hyperdirect Pathway",
+  "source": "UChicago Online",
+  "year": 2017,
+  "url": "https://www.youtube.com/watch?v=APXYe_P1BLA",
+  "embed": "https://www.youtube-nocookie.com/embed/APXYe_P1BLA",
+  "frameable": true,
+  "sections": [
+   "33-the-basal-ganglia-circuits"
+  ],
+  "minutes": 3.4,
+  "why": "University lecture clip on the hyperdirect route through the subthalamic nucleus, which short videos usually skip.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-I-j9R8tH82A",
+  "kind": "video",
+  "title": "Ask the MD: Cognitive Impairment and Parkinson's Disease",
+  "source": "The Michael J. Fox Foundation for Parkinson's Research",
+  "year": 2016,
+  "url": "https://www.youtube.com/watch?v=I-j9R8tH82A",
+  "embed": "https://www.youtube-nocookie.com/embed/I-j9R8tH82A",
+  "frameable": true,
+  "sections": [
+   "35-why-cognition-declines-the-dual-syndrome-hypothesis"
+  ],
+  "minutes": 4.5,
+  "why": "A clinician's plain overview of mild cognitive impairment and dementia in PD.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-eX1zhQZx25Y",
+  "kind": "video",
+  "title": "Dr. Daniel Weintraub - Cognitive Complications in Parkinson's",
+  "source": "Davis Phinney Foundation for Parkinson's",
+  "year": 2019,
+  "url": "https://www.youtube.com/watch?v=eX1zhQZx25Y",
+  "embed": "https://www.youtube-nocookie.com/embed/eX1zhQZx25Y",
+  "frameable": true,
+  "sections": [
+   "35-why-cognition-declines-the-dual-syndrome-hypothesis"
+  ],
+  "minutes": 56.8,
+  "why": "A full talk by an author of the PPMI cognitive papers cited in the guide.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-nnExjYitZPc",
+  "kind": "video",
+  "title": "An Introduction to PPMI and the LP Procedure",
+  "source": "The Michael J. Fox Foundation for Parkinson's Research",
+  "year": 2011,
+  "url": "https://www.youtube.com/watch?v=nnExjYitZPc",
+  "embed": "https://www.youtube-nocookie.com/embed/nnExjYitZPc",
+  "frameable": true,
+  "sections": [
+   "21-design-and-history"
+  ],
+  "minutes": 5.8,
+  "why": "Official short introduction to what PPMI collects and why.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-pHiIa27rn5o",
+  "kind": "video",
+  "title": "PPMI: The Parkinson's Study That Could Change Everything",
+  "source": "PCLA",
+  "year": 2023,
+  "url": "https://www.youtube.com/watch?v=pHiIa27rn5o",
+  "embed": "https://www.youtube-nocookie.com/embed/pHiIa27rn5o",
+  "frameable": true,
+  "sections": [
+   "21-design-and-history"
+  ],
+  "minutes": 43.1,
+  "why": "A longer talk on PPMI's aims, design and findings so far.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-yJmM1UucSA0",
+  "kind": "video",
+  "title": "DaT SPECT for Patients",
+  "source": "Society of Nuclear Medicine and Molecular Imaging",
+  "year": 2018,
+  "url": "https://www.youtube.com/watch?v=yJmM1UucSA0",
+  "embed": "https://www.youtube-nocookie.com/embed/yJmM1UucSA0",
+  "frameable": true,
+  "sections": [
+   "43-datscan-spect"
+  ],
+  "minutes": 2.8,
+  "why": "A professional society shows what a DaTscan is and how the scan is done.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-6wxJ1up-E7E",
+  "kind": "video",
+  "title": "FreeSurfer #1: Introduction",
+  "source": "Andy's Brain Tube",
+  "year": 2018,
+  "url": "https://www.youtube.com/watch?v=6wxJ1up-E7E",
+  "embed": "https://www.youtube-nocookie.com/embed/6wxJ1up-E7E",
+  "frameable": true,
+  "sections": [
+   "44-structural-mri",
+   "63-structural-mri"
+  ],
+  "minutes": 2.9,
+  "why": "Short orientation to what FreeSurfer does to a T1 image.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-zeFPx0fMXRQ",
+  "kind": "video",
+  "title": "FreeSurfer Lecture #1: Overview of FreeSurfer and recon-all",
+  "source": "Andy's Brain Tube",
+  "year": 2018,
+  "url": "https://www.youtube.com/watch?v=zeFPx0fMXRQ",
+  "embed": "https://www.youtube-nocookie.com/embed/zeFPx0fMXRQ",
+  "frameable": true,
+  "sections": [
+   "44-structural-mri",
+   "63-structural-mri"
+  ],
+  "minutes": 63.3,
+  "why": "Full lecture on the recon-all pipeline that produces the cortical and subcortical measures in PPMI's FreeSurfer tables.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-iwVqiiXYeC4",
+  "kind": "video",
+  "title": "Statistical Rethinking 2023 - 12 - Multilevel Models",
+  "source": "Richard McElreath",
+  "year": 2023,
+  "url": "https://www.youtube.com/watch?v=iwVqiiXYeC4",
+  "embed": "https://www.youtube-nocookie.com/embed/iwVqiiXYeC4",
+  "frameable": true,
+  "sections": [
+   "102-longitudinal-data-and-mixed-effects-models"
+  ],
+  "minutes": 82.0,
+  "why": "Clear lecture on partial pooling, the idea behind random effects for repeated measures.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-WV_jcaDBZ2I",
+  "kind": "video",
+  "title": "Factor Analysis - an introduction",
+  "source": "Ben Lambert",
+  "year": 2013,
+  "url": "https://www.youtube.com/watch?v=WV_jcaDBZ2I",
+  "embed": "https://www.youtube-nocookie.com/embed/WV_jcaDBZ2I",
+  "frameable": true,
+  "sections": [
+   "103-latent-variable-models"
+  ],
+  "minutes": 7.7,
+  "why": "Short university-style introduction to latent factors and loadings.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-JiDqHldHbBY",
+  "kind": "video",
+  "title": "Data-driven Disease Progression Modelling: thinking outside the black box",
+  "source": "Douglas Research Centre",
+  "year": 2023,
+  "url": "https://www.youtube.com/watch?v=JiDqHldHbBY",
+  "embed": "https://www.youtube-nocookie.com/embed/JiDqHldHbBY",
+  "frameable": true,
+  "sections": [
+   "104-disease-progression-models"
+  ],
+  "minutes": 34.9,
+  "why": "Talk whose title matches the Young 2024 review on EBM and SuStaIn style models (presenter not confirmed from oEmbed).",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-8TvnMPfXuJE",
+  "kind": "video",
+  "title": "Stanley Durrleman: Neurodegenerative Disease Progression Modelling",
+  "source": "Machine learning and image analysis",
+  "year": 2021,
+  "url": "https://www.youtube.com/watch?v=8TvnMPfXuJE",
+  "embed": "https://www.youtube-nocookie.com/embed/8TvnMPfXuJE",
+  "frameable": true,
+  "sections": [
+   "104-disease-progression-models"
+  ],
+  "minutes": 67.8,
+  "why": "The author of Leaspy explains latent-time progression models.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-fSytzGwwBVw",
+  "kind": "video",
+  "title": "Machine Learning Fundamentals: Cross Validation",
+  "source": "StatQuest with Josh Starmer",
+  "year": 2018,
+  "url": "https://www.youtube.com/watch?v=fSytzGwwBVw",
+  "embed": "https://www.youtube-nocookie.com/embed/fSytzGwwBVw",
+  "frameable": true,
+  "sections": [
+   "105-model-comparison-and-validation"
+  ],
+  "minutes": 6.1,
+  "why": "The simplest clear explanation of train/test splits and cross-validation.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "yt-1VgYIsANQck",
+  "kind": "video",
+  "title": "Statistical Rethinking 2023 - 07 - Fitting Over & Under",
+  "source": "Richard McElreath",
+  "year": 2023,
+  "url": "https://www.youtube.com/watch?v=1VgYIsANQck",
+  "embed": "https://www.youtube-nocookie.com/embed/1VgYIsANQck",
+  "frameable": true,
+  "sections": [
+   "105-model-comparison-and-validation"
+  ],
+  "minutes": 64.7,
+  "why": "Explains overfitting, cross-validation and information criteria for comparing models.",
+  "checked": "oEmbed 200 (duration and year from YouTube search listing, year approximate)"
+ },
+ {
+  "id": "marek2011",
+  "kind": "paper",
+  "title": "The Parkinson Progression Marker Initiative (PPMI)",
+  "source": "Progress in Neurobiology",
+  "year": 2011,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9014725/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "21-design-and-history"
+  ],
+  "minutes": null,
+  "why": "The original design paper for PPMI.",
+  "checked": "HEAD via curl -sIL with browser UA: PMC html X-Frame-Options DENY, PMC pdf SAMEORIGIN"
+ },
+ {
+  "id": "marek2018",
+  "kind": "paper",
+  "title": "The Parkinson's progression markers initiative: establishing a PD biomarker cohort",
+  "source": "Annals of Clinical and Translational Neurology",
+  "year": 2018,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6292383/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "21-design-and-history"
+  ],
+  "minutes": null,
+  "why": "The fuller description of cohorts, visits and assessments.",
+  "checked": "PMC X-Frame-Options SAMEORIGIN; Wiley 403 + SAMEORIGIN"
+ },
+ {
+  "id": "simuni2018",
+  "kind": "paper",
+  "title": "Longitudinal change of clinical and biological measures in early Parkinson's disease: PPMI cohort",
+  "source": "Movement Disorders",
+  "year": 2018,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6001458/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "21-design-and-history"
+  ],
+  "minutes": null,
+  "why": "Shows how PPMI measures change over the first years.",
+  "checked": "PMC X-Frame-Options DENY"
+ },
+ {
+  "id": "weintraub2015",
+  "kind": "paper",
+  "title": "Cognitive performance and neuropsychiatric symptoms in early, untreated Parkinson's disease",
+  "source": "Movement Disorders",
+  "year": 2015,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4855523/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "35-why-cognition-declines-the-dual-syndrome-hypothesis"
+  ],
+  "minutes": null,
+  "why": "Baseline cognition in PPMI, the starting point for cognitive outcomes.",
+  "checked": "PMC X-Frame-Options DENY (author manuscript)"
+ },
+ {
+  "id": "weintraub2025",
+  "kind": "paper",
+  "title": "Use of robust norming to create a sensitive cognitive summary score in de novo Parkinson's disease (medRxiv preprint)",
+  "source": "medRxiv (published in Movement Disorders 2025)",
+  "year": 2024,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11926498/",
+  "embed": "https://www.medrxiv.org/content/medrxiv/early/2024/07/08/2024.07.08.24310076.full.pdf",
+  "frameable": true,
+  "sections": [
+   "35-why-cognition-declines-the-dual-syndrome-hypothesis"
+  ],
+  "minutes": null,
+  "why": "Defines the cognitive summary score; the framable copy is the preprint, so wording may differ from the final.",
+  "checked": "medRxiv PDF: 200 application/pdf, no X-Frame-Options, no frame-ancestors; PMC html DENY; medRxiv html 403 + SAMEORIGIN"
+ },
+ {
+  "id": "kehagia2010",
+  "kind": "paper",
+  "title": "Neuropsychological and clinical heterogeneity of cognitive impairment and dementia in patients with Parkinson's disease",
+  "source": "Lancet Neurology",
+  "year": 2010,
+  "url": "https://doi.org/10.1016/S1474-4422(10)70212-X",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "35-why-cognition-declines-the-dual-syndrome-hypothesis"
+  ],
+  "minutes": null,
+  "why": "Classic review behind the dual syndrome idea (no open-access full text found: Unpaywall closed, not in PMC).",
+  "checked": "Unpaywall is_oa false; Europe PMC no full text"
+ },
+ {
+  "id": "kehagia2013",
+  "kind": "paper",
+  "title": "Cognitive impairment in Parkinson's disease: the dual syndrome hypothesis",
+  "source": "Neurodegenerative Diseases",
+  "year": 2013,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5079071/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "35-why-cognition-declines-the-dual-syndrome-hypothesis"
+  ],
+  "minutes": null,
+  "why": "The clearest statement of the dual syndrome hypothesis.",
+  "checked": "PMC X-Frame-Options SAMEORIGIN"
+ },
+ {
+  "id": "williamsgray2009",
+  "kind": "paper",
+  "title": "The distinct cognitive syndromes of Parkinson's disease: 5 year follow-up of the CamPaIGN cohort",
+  "source": "Brain",
+  "year": 2009,
+  "url": "https://doi.org/10.1093/brain/awp245",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "35-why-cognition-declines-the-dual-syndrome-hypothesis"
+  ],
+  "minutes": null,
+  "why": "Evidence that frontostriatal and posterior-cortical syndromes predict different outcomes (no open-access full text verified).",
+  "checked": "Unpaywall is_oa false; Europe PMC lists an OUP pdf link as OA but Unpaywall says closed, not verified"
+ },
+ {
+  "id": "williamsgray2013",
+  "kind": "paper",
+  "title": "The CamPaIGN study of Parkinson's disease: 10-year outlook",
+  "source": "J Neurol Neurosurg Psychiatry",
+  "year": 2013,
+  "url": "https://doi.org/10.1136/jnnp-2013-305277",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "35-why-cognition-declines-the-dual-syndrome-hypothesis"
+  ],
+  "minutes": null,
+  "why": "Long-run dementia risk in an incident cohort (no open-access full text found).",
+  "checked": "Unpaywall is_oa false"
+ },
+ {
+  "id": "braak2003",
+  "kind": "paper",
+  "title": "Staging of brain pathology related to sporadic Parkinson's disease",
+  "source": "Neurobiology of Aging",
+  "year": 2003,
+  "url": "https://doi.org/10.1016/S0197-4580(02)00065-9",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "31-what-goes-wrong"
+  ],
+  "minutes": null,
+  "why": "The origin of Braak staging (no open-access full text found).",
+  "checked": "Unpaywall is_oa false"
+ },
+ {
+  "id": "borghammer2019",
+  "kind": "paper",
+  "title": "Brain-first versus gut-first Parkinson's disease: a hypothesis",
+  "source": "Journal of Parkinson's Disease",
+  "year": 2019,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6839496/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "31-what-goes-wrong"
+  ],
+  "minutes": null,
+  "why": "Explains why PD may start in brain or gut, one reason people progress differently.",
+  "checked": "PMC SAMEORIGIN; IOS Press 403 + SAMEORIGIN"
+ },
+ {
+  "id": "horsager2020",
+  "kind": "paper",
+  "title": "Brain-first versus body-first Parkinson's disease: a multimodal imaging case-control study",
+  "source": "Brain",
+  "year": 2020,
+  "url": "https://doi.org/10.1093/brain/awaa238",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "31-what-goes-wrong"
+  ],
+  "minutes": null,
+  "why": "Imaging evidence for the two origins (no open-access full text verified; only a Newcastle figshare record).",
+  "checked": "Unpaywall lists no PMC/publisher OA copy; OUP 403 + SAMEORIGIN"
+ },
+ {
+  "id": "kordower2013",
+  "kind": "paper",
+  "title": "Disease duration and the integrity of the nigrostriatal system in Parkinson's disease",
+  "source": "Brain",
+  "year": 2013,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3722357/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "32-the-nigrostriatal-dopamine-system"
+  ],
+  "minutes": null,
+  "why": "Post-mortem data on how fast nigral neurons and striatal terminals are lost.",
+  "checked": "PMC SAMEORIGIN"
+ },
+ {
+  "id": "siderowf2023",
+  "kind": "paper",
+  "title": "Assessment of heterogeneity among participants in the PPMI cohort using alpha-synuclein seed amplification (medRxiv preprint)",
+  "source": "medRxiv (published in Lancet Neurology 2023)",
+  "year": 2023,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10627170/",
+  "embed": "https://www.medrxiv.org/content/medrxiv/early/2023/03/01/2023.02.27.23286156.full.pdf",
+  "frameable": true,
+  "sections": [
+   "31-what-goes-wrong",
+   "21-design-and-history"
+  ],
+  "minutes": null,
+  "why": "Why not every PPMI participant has the same biology; framable copy is the preprint.",
+  "checked": "medRxiv PDF: 200 application/pdf, no X-Frame-Options; PMC html SAMEORIGIN; medRxiv html 403"
+ },
+ {
+  "id": "simuni2024",
+  "kind": "paper",
+  "title": "A biological definition of neuronal alpha-synuclein disease: towards an integrated staging system for research",
+  "source": "Lancet Neurology",
+  "year": 2024,
+  "url": "https://resolver.sub.uni-goettingen.de/purl?gro-2/140348",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "31-what-goes-wrong"
+  ],
+  "minutes": null,
+  "why": "The NSD-ISS staging proposal; only an institutional repository copy found.",
+  "checked": "Unpaywall repository copy (Goettingen); curl got 403 (bot block), headers not readable"
+ },
+ {
+  "id": "hoglinger2024",
+  "kind": "paper",
+  "title": "A biological classification of Parkinson's disease: the SynNeurGe research diagnostic criteria",
+  "source": "Lancet Neurology",
+  "year": 2024,
+  "url": "https://www.preprints.org/manuscript/202304.0108/v1",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "31-what-goes-wrong"
+  ],
+  "minutes": null,
+  "why": "The SynNeurGe classification; only a preprints.org version found.",
+  "checked": "preprints.org returns 403 to curl, headers not readable"
+ },
+ {
+  "id": "iddi2018",
+  "kind": "paper",
+  "title": "Estimating the evolution of disease in the Parkinson's Progression Markers Initiative",
+  "source": "Neurodegenerative Diseases",
+  "year": 2018,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6314496/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "104-disease-progression-models"
+  ],
+  "minutes": null,
+  "why": "Closest published precedent: a latent disease time fitted to PPMI.",
+  "checked": "PMC X-Frame-Options DENY"
+ },
+ {
+  "id": "oxtoby2021",
+  "kind": "paper",
+  "title": "Sequence of clinical and neurodegeneration events in Parkinson's disease progression",
+  "source": "Brain",
+  "year": 2021,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8041043/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "104-disease-progression-models"
+  ],
+  "minutes": null,
+  "why": "An event-based model applied to PPMI.",
+  "checked": "PMC X-Frame-Options DENY"
+ },
+ {
+  "id": "young2018",
+  "kind": "paper",
+  "title": "Uncovering the heterogeneity and temporal complexity of neurodegenerative diseases with Subtype and Stage Inference (bioRxiv preprint)",
+  "source": "bioRxiv (published in Nature Communications 2018)",
+  "year": 2018,
+  "url": "https://www.nature.com/articles/s41467-018-05892-0",
+  "embed": "https://www.biorxiv.org/content/biorxiv/early/2017/12/21/236604.full.pdf",
+  "frameable": true,
+  "sections": [
+   "104-disease-progression-models"
+  ],
+  "minutes": null,
+  "why": "The SuStaIn paper; framable copy is the bioRxiv preprint.",
+  "checked": "bioRxiv PDF HEAD: 200 application/pdf, only CSP upgrade-insecure-requests; Nature html and PDF send X-Frame-Options DENY + frame-ancestors none; PMC DENY"
+ },
+ {
+  "id": "young2024",
+  "kind": "paper",
+  "title": "Data-driven modelling of neurodegenerative disease progression: thinking outside the black box (accepted manuscript)",
+  "source": "Nature Reviews Neuroscience",
+  "year": 2024,
+  "url": "https://doi.org/10.1038/s41583-023-00779-6",
+  "embed": "https://discovery.ucl.ac.uk/id/eprint/10186846/1/NRN-D3PM_Review-AcceptedInPrinciple.pdf",
+  "frameable": true,
+  "sections": [
+   "104-disease-progression-models"
+  ],
+  "minutes": null,
+  "why": "Best overview of EBM, SuStaIn and latent-time models; framable copy is the UCL accepted manuscript.",
+  "checked": "UCL PDF: 200 application/pdf, no X-Frame-Options; UCL landing page SAMEORIGIN"
+ },
+ {
+  "id": "schiratti2017",
+  "kind": "paper",
+  "title": "A Bayesian mixed-effects model to learn trajectories of changes from repeated manifold-valued observations",
+  "source": "Journal of Machine Learning Research",
+  "year": 2017,
+  "url": "https://jmlr.org/papers/v18/17-197.html",
+  "embed": "https://jmlr.org/papers/volume18/17-197/17-197.pdf",
+  "frameable": true,
+  "sections": [
+   "104-disease-progression-models"
+  ],
+  "minutes": null,
+  "why": "The statistical basis of Leaspy.",
+  "checked": "jmlr.org PDF and html: 200, no X-Frame-Options, no CSP"
+ },
+ {
+  "id": "poulet2023",
+  "kind": "paper",
+  "title": "Multivariate disease progression modeling with longitudinal ordinal data",
+  "source": "Statistics in Medicine",
+  "year": 2023,
+  "url": "https://inria.hal.science/hal-04095450",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "104-disease-progression-models"
+  ],
+  "minutes": null,
+  "why": "Leaspy for ordinal scores such as the MDS-UPDRS items.",
+  "checked": "HAL sends no frame headers but serves an anti-bot challenge page to curl, so not reliably frameable; open-access copy exists on HAL and Wiley (bronze)"
+ },
+ {
+  "id": "severson2021",
+  "kind": "paper",
+  "title": "Discovery of Parkinson's disease states and disease progression modelling",
+  "source": "Lancet Digital Health",
+  "year": 2021,
+  "url": "https://www.thelancet.com/article/S2589750021001011/pdf",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "104-disease-progression-models"
+  ],
+  "minutes": null,
+  "why": "A disease progression model fitted to PPMI.",
+  "checked": "thelancet.com 403 + SAMEORIGIN (open access CC BY-NC-ND per Unpaywall)"
+ },
+ {
+  "id": "zeighami2015",
+  "kind": "paper",
+  "title": "Network structure of brain atrophy in de novo Parkinson's disease",
+  "source": "eLife",
+  "year": 2015,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4596689/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "44-structural-mri",
+   "63-structural-mri"
+  ],
+  "minutes": null,
+  "why": "PPMI structural MRI atrophy patterns.",
+  "checked": "PMC DENY; elifesciences.org returns 406 to curl, headers not readable"
+ },
+ {
+  "id": "schulz2018",
+  "kind": "paper",
+  "title": "Nucleus basalis of Meynert degeneration precedes and predicts cognitive impairment in Parkinson's disease",
+  "source": "Brain",
+  "year": 2018,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6171218/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "35-why-cognition-declines-the-dual-syndrome-hypothesis",
+   "44-structural-mri"
+  ],
+  "minutes": null,
+  "why": "Links a structural MRI measure to later cognitive decline.",
+  "checked": "PMC SAMEORIGIN; OUP 403 + SAMEORIGIN"
+ },
+ {
+  "id": "sampedro2019",
+  "kind": "paper",
+  "title": "Dopaminergic degeneration induces early posterior cortical thinning in Parkinson's disease",
+  "source": "Neurobiology of Disease",
+  "year": 2019,
+  "url": "https://doi.org/10.1016/j.nbd.2018.11.001",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "43-datscan-spect",
+   "44-structural-mri"
+  ],
+  "minutes": null,
+  "why": "Connects DaTscan loss to cortical thinning (no open-access full text found).",
+  "checked": "Unpaywall: only a DOAJ record; doi.org 403 + SAMEORIGIN"
+ },
+ {
+  "id": "fiorenzato2021",
+  "kind": "paper",
+  "title": "Asymmetric dopamine transporter loss affects cognitive and motor progression in Parkinson's disease",
+  "source": "Movement Disorders",
+  "year": 2021,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8596815/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "43-datscan-spect"
+  ],
+  "minutes": null,
+  "why": "Uses DaTscan asymmetry to predict progression.",
+  "checked": "PMC SAMEORIGIN"
+ },
+ {
+  "id": "pasquini2019",
+  "kind": "paper",
+  "title": "Clinical implications of early caudate dysfunction in Parkinson's disease",
+  "source": "J Neurol Neurosurg Psychiatry",
+  "year": 2019,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6817982/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "43-datscan-spect"
+  ],
+  "minutes": null,
+  "why": "Caudate DaTscan binding and later cognitive outcomes in PPMI.",
+  "checked": "PMC SAMEORIGIN"
+ },
+ {
+  "id": "vehtari2017",
+  "kind": "paper",
+  "title": "Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC",
+  "source": "Statistics and Computing (arXiv 1507.04544)",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1507.04544",
+  "embed": "https://arxiv.org/pdf/1507.04544",
+  "frameable": true,
+  "sections": [
+   "105-model-comparison-and-validation"
+  ],
+  "minutes": null,
+  "why": "How to compare Bayesian models by predictive accuracy.",
+  "checked": "arXiv PDF: 200 application/pdf, no X-Frame-Options; arXiv abs page frame-ancestors none + SAMEORIGIN"
+ },
+ {
+  "id": "cawley2010",
+  "kind": "paper",
+  "title": "On over-fitting in model selection and subsequent selection bias in performance evaluation",
+  "source": "Journal of Machine Learning Research",
+  "year": 2010,
+  "url": "https://jmlr.org/papers/v11/cawley10a.html",
+  "embed": "https://jmlr.org/papers/volume11/cawley10a/cawley10a.pdf",
+  "frameable": true,
+  "sections": [
+   "105-model-comparison-and-validation"
+  ],
+  "minutes": null,
+  "why": "Why tuning and testing on the same data inflates results (nested cross-validation).",
+  "checked": "jmlr.org PDF and html: 200, no X-Frame-Options, no CSP"
+ },
+ {
+  "id": "collins2024",
+  "kind": "paper",
+  "title": "TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods",
+  "source": "BMJ",
+  "year": 2024,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11019967/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "105-model-comparison-and-validation"
+  ],
+  "minutes": null,
+  "why": "The reporting checklist to follow when publishing a prediction or progression model.",
+  "checked": "PMC SAMEORIGIN; bmj.com 403 + SAMEORIGIN"
+ },
+ {
+  "id": "brumm2023",
+  "kind": "paper",
+  "title": "PPMI: a milestone-based strategy to monitor Parkinson's disease progression",
+  "source": "Journal of Parkinson's Disease",
+  "year": 2023,
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10578214/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "21-design-and-history"
+  ],
+  "minutes": null,
+  "why": "Current PPMI design and the Parkinson's milestones.",
+  "checked": "PMC DENY; IOS Press 403 + SAMEORIGIN"
+ },
+ {
+  "id": "ppmi-info",
+  "kind": "page",
+  "title": "PPMI study website",
+  "source": "Michael J. Fox Foundation / PPMI",
+  "year": 2026,
+  "url": "https://www.ppmi-info.org/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "21-design-and-history"
+  ],
+  "minutes": null,
+  "why": "The official front door to the study, data access and documentation.",
+  "checked": "curl -sIL: 200, X-Frame-Options SAMEORIGIN"
+ },
+ {
+  "id": "loni-ida",
+  "kind": "page",
+  "title": "LONI Image and Data Archive (IDA)",
+  "source": "USC Laboratory of Neuro Imaging",
+  "year": 2026,
+  "url": "https://ida.loni.usc.edu/",
+  "embed": null,
+  "frameable": false,
+  "sections": [
+   "21-design-and-history"
+  ],
+  "minutes": null,
+  "why": "Where PPMI imaging and data downloads are hosted; login page only, no participant data shown.",
+  "checked": "curl -sIL: 200, no X-Frame-Options, no CSP (login page; site behaviour after sign-in not tested) Embedding switched off in the atlas: it is a sign-in page, so it opens in its own tab."
+ }
+]

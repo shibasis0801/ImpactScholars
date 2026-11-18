@@ -88,3 +88,73 @@ def css(scores: pd.DataFrame) -> Figure:
     right.set(title="Mean CSS by study year (± SEM)", xlabel="years from baseline", ylabel="CSS (z)")
     fig.legend(*left.get_legend_handles_labels(), loc="outside right upper")
     return fig
+
+
+EDGES = {"participant": ("#2F6DB5", "-"), "visit": ("#E07A1F", "--"), "image": ("#7B4FA0", ":"), "built from": ("#8C8C8C", "-")}
+
+
+@themed
+def heatmap(table: pd.DataFrame, title: str, label: str = "participants") -> Figure:
+    values = table.fillna(0).to_numpy(dtype=float)
+    top = max(values.max(), 1)
+    fig = Figure(figsize=(max(5, 2.6 + 0.48 * table.shape[1]), max(2.4, 1.2 + 0.27 * table.shape[0])), layout="constrained")
+    ax = fig.subplots()
+    image = ax.imshow(values, cmap="Blues", aspect="auto", vmin=0, vmax=top)
+    for (row, column), value in np.ndenumerate(values):
+        if value:
+            ax.text(column, row, f"{value:,.0f}", ha="center", va="center", fontsize=6.5,
+                    color="white" if value > 0.6 * top else "#1F1F1F")
+    ax.set_xticks(np.arange(table.shape[1]), table.columns.astype(str), rotation=40, ha="right")
+    ax.set_yticks(np.arange(table.shape[0]), table.index.astype(str))
+    ax.tick_params(length=0)
+    ax.grid(False)
+    ax.spines[:].set_visible(False)
+    ax.set_title(title)
+    fig.colorbar(image, ax=ax, label=label, shrink=0.8)
+    return fig
+
+
+@themed
+def relations(nodes: pd.DataFrame, edges: pd.DataFrame, title: str) -> Figure:
+    layers = list(dict.fromkeys(nodes.layer))
+    column = {name: layers.index(layer) for name, layer in nodes.layer.items()}
+    order = {layer: list(nodes.index[nodes.layer == layer]) for layer in layers}
+    neighbours = {name: [] for name in nodes.index}
+    for source, target in zip(edges.source, edges.target):
+        neighbours[source].append(target)
+        neighbours[target].append(source)
+    kept = {layers[column[source]] for source, target in zip(edges.source, edges.target) if column[source] == column[target]}
+    for layer in [layer for layer in (layers[1:] + layers[-2::-1]) * 3 if layer not in kept]:
+        rank = {name: i / max(len(members) - 1, 1) for members in order.values() for i, name in enumerate(members)}
+        across = {name: [rank[other] for other in neighbours[name] if column[other] != column[name]] for name in order[layer]}
+        order[layer].sort(key=lambda name: sum(across[name]) / len(across[name]) if across[name] else rank[name])
+    tallest = max(map(len, order.values()))
+    fig = Figure(figsize=(3.3 * len(layers) + 0.6, 1.2 + 0.24 * tallest), layout="constrained")
+    ax = fig.subplots()
+    boxes = {}
+    for x, layer in enumerate(layers):
+        ax.text(x, 1, layer, fontweight="bold", va="bottom")
+        for k, name in enumerate(order[layer]):
+            count = nodes.participants.get(name)
+            label = f"{name}  ({count:,.0f})" if pd.notna(count) and count else name
+            y = -k * (tallest - 1) / max(len(order[layer]) - 1, 1)
+            boxes[name] = ax.text(x, y, label, va="center", fontsize=7, zorder=3,
+                                  bbox=dict(boxstyle="round,pad=0.3", facecolor="white", edgecolor="#9A9A9A", linewidth=0.8))
+    for kind, (color, style) in EDGES.items():
+        part = edges[edges.kind == kind]
+        for source, target in zip(part.source, part.target):
+            step = np.sign(column[target] - column[source])
+            ends = {1: ((1, 0.5), (0, 0.5)), -1: ((0, 0.5), (1, 0.5)), 0: ((1, 0.5), (1, 0.5))}[step]
+            downward = boxes[target].get_position()[1] < boxes[source].get_position()[1]
+            ax.annotate("", xy=ends[1], xycoords=boxes[target], xytext=ends[0], textcoords=boxes[source], zorder=1,
+                        arrowprops=dict(arrowstyle="-|>" if kind == "built from" else "-", color=color, linestyle=style,
+                                        lw=0.9, alpha=0.8, shrinkA=0, shrinkB=0,
+                                        connectionstyle=f"arc3,rad={(-0.5 if downward else 0.5) if step == 0 else 0}"))
+        if len(part):
+            ax.plot([], [], color=color, linestyle=style, label=f"{kind}: {part.key.iloc[0]}")
+    ax.set_xlim(-0.05, len(layers) - 0.15)
+    ax.set_ylim(-tallest + 0.4, 1.6)
+    ax.axis("off")
+    ax.set_title(title)
+    fig.legend(loc="outside lower center", ncols=4)
+    return fig

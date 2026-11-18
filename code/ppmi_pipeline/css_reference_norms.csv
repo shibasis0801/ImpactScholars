@@ -1,0 +1,7 @@
+measure,intercept,age_center,age_linear,age_quadratic,sex_coef,edu_center,edu_linear,edu_quadratic,rmse
+hvlt_immediate,28.37542,0,-0.05979,0,1.58306,0,0,0,4.32146
+hvlt_delayed,10.92487,0,-0.03996,0,0.80139,0,0,0,2.12293
+jlo,15.07467,0,-0.02374,0,-1.29422,0,0.08678,0,1.77892
+lns,12.30761,0,-0.05359,0,0,0,0.13650,0,2.68988
+sdmt,76.80621,0,-0.47289,0,0,0,0,0,8.95934
+semantic,20.25284,0,0,0,1.71525,0,0,0,5.49634

@@ -1,2 +1,13 @@
 __pycache__/
 .ipynb_checkpoints/
+.venv/
+
+# PPMI data never belongs in this repository
+*.duckdb
+*.duckdb.wal
+idaSearch*.csv
+*_[0-9][0-9][A-Z][a-z][a-z][0-9][0-9][0-9][0-9].csv
+PPMI_Curated_Data_Cut*
+*.dcm
+*.nii
+*.nii.gz

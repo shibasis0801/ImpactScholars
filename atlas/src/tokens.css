@@ -1,0 +1,34 @@
+/* PPMI Atlas design tokens. Light values on :root, dark values in the two dark blocks. */
+:root {
+  --bg: #f2f3ef;
+  --surface: #fbfbf8;
+  --surface-2: #e9ebe5;
+  --fg: #1c2024;
+  --muted: #5a626a;
+  --rule: #d3d7cf;
+  --axis: #9aa09a;
+  --grid: #e0e3dc;
+  --tint: #eceee8;
+  --accent: #2456c3;      /* D: dopaminergic stage, DaTScan */
+  --accent-2: #c2531c;    /* S: structural stage, MRI */
+  --critical: #c0392f;    /* loss, harm, error */
+  --good: #2d7a4c;
+  --warn: #a86c12;
+  --font-ui: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Literata", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1113; --surface: #151a1d; --surface-2: #1d2327; --fg: #e2e6e3; --muted: #9aa3a6;
+    --rule: #2b3337; --axis: #6a7378; --grid: #252c30; --tint: #1a2023;
+    --accent: #7aa2ff; --accent-2: #f08c56; --critical: #ff7a70; --good: #5cc48a; --warn: #e5b45c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1113; --surface: #151a1d; --surface-2: #1d2327; --fg: #e2e6e3; --muted: #9aa3a6;
+  --rule: #2b3337; --axis: #6a7378; --grid: #252c30; --tint: #1a2023;
+  --accent: #7aa2ff; --accent-2: #f08c56; --critical: #ff7a70; --good: #5cc48a; --warn: #e5b45c;
+  color-scheme: dark;
+}

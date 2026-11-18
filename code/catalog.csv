@@ -1,0 +1,105 @@
+group,subgroup,dataset,kind,format,keys,file,project,notes
+Start Here,Quick Start Guide,PPMI Data User Guide,document,pdf,,,recommended,"How the PPMI data are organised, with worked examples; read it first"
+Start Here,Quick Start Guide,PPMI Biomarker Dashboard,document,web,,,,Interactive overview of biospecimen results
+Study Docs,Data & Databases,Code List (Annotated),document,csv,,,recommended,Meaning of every coded value in every table
+Study Docs,Data & Databases,Data Dictionary (Annotated),document,csv,,,recommended,"Every table and column: MOD_NAME is the table, ITM_NAME the column"
+Study Docs,Data & Databases,Deprecated Variables,document,csv,,,,Columns that are no longer distributed
+Study Docs,Study Data Request Forms,Data request forms and PPMI Data Access Guidelines,document,pdf,,,,How to request additional data or specimens
+Study Docs,Study Methods,Method for calculating Levodopa Equivalent Dose,document,pdf,,,recommended,How LEDD is derived; needed with the LEDD medication log
+Study Docs,Study Protocol & CRFs,Study CRFs and Assessments,document,pdf,,,,Case report forms and questionnaires behind every table
+Subject Characteristics,Family History,Family History,participant table,csv,PATNO,,,Parkinson's disease in relatives
+Subject Characteristics,Genetic Status,Consensus APOE,participant table,csv,PATNO,,,APOE genotype
+Subject Characteristics,Genetic Status,Polygenic risk score,participant table,csv,PATNO,,,Genetic principal components and polygenic risk score
+Subject Characteristics,Genetic Status,Participant Genetic Status,participant table,csv,PATNO,,,"Pathogenic variant status (LRRK2, GBA, SNCA and others)"
+Subject Characteristics,Patient Status,Participant Status,participant table,csv,PATNO,Participant_Status,core,"Cohort, enrolment status and date, genetic enrolment subgroup; the table every analysis starts from"
+Subject Characteristics,Subject Demographics,Age at visit,visit table,csv,"PATNO, EVENT_ID",Age_at_visit,core,Age at every visit
+Subject Characteristics,Subject Demographics,Demographics,participant table,csv,PATNO,Demographics,core,"Sex, handedness, race and ethnicity"
+Subject Characteristics,Subject Demographics,Socio-Economics,participant table,csv,PATNO,Socio-Economics,core,Years of education
+Subject Characteristics,Subject Demographics,Subject Cohort History,participant table,csv,PATNO,,,Cohort changes over time
+Biospecimen,Biosample Inventory,Biosample inventories (various),biospecimen table,csv,"PATNO, CLINICAL_EVENT",,,Which samples exist for whom and when
+Biospecimen,Biospecimen Sample Analysis,Biospecimen Analysis Results Overview,document,pdf,,,,Guide to the result sets
+Biospecimen,Biospecimen Sample Analysis,Current Biospecimen Analysis Results,biospecimen table,csv,"PATNO, CLINICAL_EVENT, TESTNAME",,recommended,"CSF and blood results in long format: amyloid-beta 42, tau, p-tau181, neurofilament light and more"
+Biospecimen,Biospecimen Sample Analysis,Deprecated Biospecimen Analysis Results,biospecimen table,csv,"PATNO, CLINICAL_EVENT, TESTNAME",,,Superseded results
+Biospecimen,Biospecimen Sample Analysis,Pilot Biospecimen Analysis Results,biospecimen table,csv,"PATNO, CLINICAL_EVENT, TESTNAME",,,Early pilot of the seed amplification assay
+Biospecimen,Biospecimen Sample Analysis,SAA Biospecimen Analysis Results,biospecimen table,csv,"PATNO, CLINICAL_EVENT",,recommended,Alpha-synuclein seed amplification assay results
+Biospecimen,Biospecimen Sample Analysis,Project 181 immune markers,biospecimen table,csv,"PATNO, CLINICAL_EVENT",,,Adaptive immune markers for predicting cognitive decline
+Biospecimen,Biospecimen Analysis Methods,Method documents (various),document,pdf,,,,How each biospecimen project measured its samples
+Biospecimen,Lab Collection Procedures,Lab procedures (various),document,pdf,,,,"Blood chemistry, lumbar puncture, skin biopsy procedures"
+Biospecimen,Metabolomic Analysis,Metabolomic results (various),biospecimen table,csv,"PATNO, CLINICAL_EVENT",,,Metabolomic tests and results
+Biospecimen,Neuropathology results,Neuropathology results,biospecimen table,csv,PATNO,,,Post-mortem examination results
+Biospecimen,Proteomic Analysis,Proteomic results (various),biospecimen table,csv,"PATNO, CLINICAL_EVENT",,,Proteomic tests and results
+Curated Data Cuts,Curated Data Cuts,PPMI Curated Data Cut (Public),curated table,xlsx,"PATNO, EVENT_ID",PPMI_Curated_Data_Cut_Public,recommended,"One merged table of frequently used variables (about 160 columns): cohort, NSD stage, LEDD, cognition, MDS-UPDRS, milestones, CSF, DaTscan; use it to cross-check the pipeline"
+Digital Sensor,Roche Smartphone App,Roche PD Monitoring App data and methods,sensor data,csv,PATNO,,,Smartphone motor and voice tasks for selected participants
+Digital Sensor,Verily Study Watch,Verily Study Watch derived data,sensor data,csv,PATNO,,,Wearable-derived activity and sleep measures
+Enrollment,Subject Enrollment,Enrollment records (various),participant table,csv,PATNO,,,"Consent, sub-study participation and other enrolment records"
+Imaging,DaTSCAN Imaging,Xing Core Lab - Quant SBR,imaging table,csv,"PATNO, EVENT_ID, IMAGEID",Xing_Core_Lab_-_Quant_SBR,core,"DaTscan specific binding ratios for left and right caudate and putamen, cerebral white matter reference (columns *_REF_CWM); the current core lab"
+Imaging,DaTSCAN Imaging,DaTscan SBR Analysis (archived Invicro),imaging table,csv,"PATNO, EVENT_ID, IMAGEID",DaTScan_SBR_Analysis,pipeline,Earlier SBRs with an occipital reference; never pool with the Xing values
+Imaging,DaTSCAN Imaging,DaTscan Imaging,imaging table,csv,"PATNO, EVENT_ID",,,"Scan metadata: date, site"
+Imaging,DaTSCAN Imaging,DaTscan Metadata,imaging table,csv,"PATNO, EVENT_ID",,,"Acquisition details: scan time, injected dose"
+Imaging,DaTSCAN Imaging,DaTscan Visual Interpretation Results,imaging table,csv,"PATNO, EVENT_ID",,,Visual read: positive or negative
+Imaging,DaTSCAN Imaging,DaTscan SBR and visual-read methods,document,pdf,,,,How SBRs are computed and scans are read
+Imaging,Diffusion Imaging,DTI Regions of Interest,imaging table,csv,"PATNO, EVENT_ID",,,Diffusion measures in 8 regions for a small early sub-study
+Imaging,Diffusion Imaging,DTI Preprocessing Manual,document,pdf,,,,Method document for the DTI sub-study
+Imaging,Magnetic Resonance Imaging,Grey Matter Volume,imaging table,csv,"PATNO, EVENT_ID, IMAGEID",Grey_Matter_Volume,core,One total grey-matter volume per T1 scan (GM_VOLUME) with the scan month (MRIDATE)
+Imaging,Magnetic Resonance Imaging,Xing Core Lab - MRI acquisition metadata,imaging table,csv,"PATNO, EVENT_ID",Xing_Core_Lab_-_MRI_acquisition_metadata,pipeline,Which sequences were acquired at each visit and whether the image was acceptable
+Imaging,Magnetic Resonance Imaging,FS7 ASEG VOL,imaging table,csv,"PATNO, EVENT_ID",FS7_ASEG_VOL,recommended,FreeSurfer 7 subcortical volumes
+Imaging,Magnetic Resonance Imaging,FS7 APARC CTH,imaging table,csv,"PATNO, EVENT_ID",FS7_APARC_CTH,recommended,FreeSurfer 7 regional cortical thickness
+Imaging,Magnetic Resonance Imaging,MRIQC,imaging table,csv,"PATNO, EVENT_ID",,recommended,"MRI quality metrics, including the intracranial grey-matter fraction needed to correct for head size"
+Imaging,Magnetic Resonance Imaging,Magnetic Resonance Imaging (MRI),imaging table,csv,"PATNO, EVENT_ID",Magnetic_Resonance_Imaging__MRI_,,"Was a brain MRI done at the visit, and the clinical read"
+Imaging,Magnetic Resonance Imaging,MRI Metadata,imaging table,csv,"PATNO, EVENT_ID",,,"Which sequences were acquired: DTI, NM-MT, T1, T2 FLAIR"
+Imaging,Magnetic Resonance Imaging,Rs-fMRI Data Availability and Usage,document,pdf,,,,Resting-state fMRI sub-study (2012 to 2019)
+Imaging,PET Imaging,PET metadata and results (various),imaging table,csv,"PATNO, EVENT_ID",,,Tau and AV-133 PET sub-studies
+Medical History,Medical,Adverse Event Telephone Assessment,log,csv,"PATNO, EVENT_ID",,,Follow-up after lumbar puncture or DaTscan
+Medical History,Medical,Concomitant Medication Log,log,csv,PATNO,,,Non-dopaminergic medication history
+Medical History,Medical,Determination of Freezing and Falls,visit table,csv,"PATNO, EVENT_ID",,,Freezing of gait and falls
+Medical History,Medical,Early Imaging tables (various),visit table,csv,"PATNO, EVENT_ID",,,Data of the Early Imaging cohort
+Medical History,Medical,Features of Parkinsonism,visit table,csv,"PATNO, EVENT_ID",,,"Rigidity, bradykinesia, tremor, postural instability"
+Medical History,Medical,General Physical Exam,visit table,csv,"PATNO, EVENT_ID",,,Physical examination at screening
+Medical History,Medical,LEDD Concomitant Medication Log,log,csv,PATNO,,recommended,Dopaminergic medication with dates and levodopa-equivalent dose: the treatment covariate
+Medical History,Medical,Medical Conditions Log,log,csv,PATNO,,,Other medical conditions and their year of diagnosis
+Medical History,Medical,Other Clinical Features,visit table,csv,"PATNO, EVENT_ID",,,"Dystonia, micrographia, shuffling gait and other features"
+Medical History,Medical,PD Diagnosis History,participant table,csv,PATNO,,recommended,Date of diagnosis and first motor symptoms: needed for time since diagnosis
+Medical History,Medical,Primary Clinical Diagnosis,visit table,csv,"PATNO, EVENT_ID",,recommended,"Investigator's diagnosis at each visit, including cognitive diagnosis"
+Medical History,Medical,Prodromal History,participant table,csv,PATNO,,,"Prodromal features: REM sleep behaviour disorder, hyposmia, family history"
+Medical History,Medical,Surgery for PD Log,log,csv,PATNO,,,Deep brain stimulation and other surgery
+Medical History,Medical,Vital Signs,visit table,csv,"PATNO, EVENT_ID",,,"Blood pressure, weight, height"
+Medical History,Medical,Pregnancy records (various),log,csv,PATNO,,,Pregnancy tests and reports
+Medical History,Medical,Tau sub-study tables (various),visit table,csv,"PATNO, EVENT_ID",,,Data of the tau PET sub-study
+Medical History,Neurological Exam,Neurological Exam,visit table,csv,"PATNO, EVENT_ID",,,"Motor exam, gait, reflexes"
+Medical History,Neurological Exam,Prodromal Diagnostic Code Memo,document,pdf,,,,How the prodromal history is coded
+Medical History,Safety Monitoring,Adverse Event Log,log,csv,PATNO,,,Adverse events during the study
+Motor Assessments,Motor / MDS-UPDRS,MDS-UPDRS Part I,visit table,csv,"PATNO, EVENT_ID",,recommended,"Non-motor experiences of daily living, rated by the investigator"
+Motor Assessments,Motor / MDS-UPDRS,MDS-UPDRS Part I Patient Questionnaire,visit table,csv,"PATNO, EVENT_ID",,recommended,"Non-motor experiences of daily living, self-rated"
+Motor Assessments,Motor / MDS-UPDRS,MDS-UPDRS Part II Patient Questionnaire,visit table,csv,"PATNO, EVENT_ID",,recommended,"Motor experiences of daily living, self-rated"
+Motor Assessments,Motor / MDS-UPDRS,MDS-UPDRS Part III,visit table,csv,"PATNO, EVENT_ID, REC_ID",MDS-UPDRS_Part_III,core,"Motor examination: NP3TOT, Hoehn and Yahr (NHY), medication state (PDSTATE), treatment at entry (PDTRTMNT)"
+Motor Assessments,Motor / MDS-UPDRS,MDS-UPDRS Part III ON/OFF Determination,visit table,csv,"PATNO, EVENT_ID",,,How the motor exam was done relative to medication
+Motor Assessments,Motor / MDS-UPDRS,MDS-UPDRS Part IV Motor Complications,visit table,csv,"PATNO, EVENT_ID",,recommended,"Dyskinesia and motor fluctuations"
+Motor Assessments,Motor / MDS-UPDRS,Modified Schwab & England Activities of Daily Living,visit table,csv,"PATNO, EVENT_ID",,,Independence in daily activities
+Motor Assessments,Motor / MDS-UPDRS,Neuro-QoL lower and upper extremity function,visit table,csv,"PATNO, EVENT_ID",,,Mobility and fine-motor quality of life
+Motor Assessments,Motor / MDS-UPDRS,Participant Motor Function Questionnaire,visit table,csv,"PATNO, EVENT_ID",,,Self-reported motor function
+Motor Assessments,Motor / MDS-UPDRS,Gait sub-study and arm swing (various),visit table,csv,"PATNO, EVENT_ID",,,Gait and arm-swing measurements with their method document
+Non-motor Assessments,Neuropsychological Tests,Benton Judgement of Line Orientation,visit table,csv,"PATNO, EVENT_ID",Benton_Judgement_of_Line_Orientation,core,Visuospatial test; use JLO_TOTRAW (0 to 15)
+Non-motor Assessments,Neuropsychological Tests,Hopkins Verbal Learning Test - Revised,visit table,csv,"PATNO, EVENT_ID",Hopkins_Verbal_Learning_Test_-_Revised,core,"Verbal learning (HVLTRT1 to 3) and delayed recall (HVLTRDLY)"
+Non-motor Assessments,Neuropsychological Tests,Letter - Number Sequencing,visit table,csv,"PATNO, EVENT_ID",Letter_-_Number_Sequencing,core,Working memory (LNS_TOTRAW)
+Non-motor Assessments,Neuropsychological Tests,Modified Semantic Fluency,visit table,csv,"PATNO, EVENT_ID",Modified_Semantic_Fluency,core,Animals named in one minute (VLTANIM)
+Non-motor Assessments,Neuropsychological Tests,Symbol Digit Modalities Test,visit table,csv,"PATNO, EVENT_ID",Symbol_Digit_Modalities_Test,core,Processing speed (SDMTOTAL)
+Non-motor Assessments,Neuropsychological Tests,Montreal Cognitive Assessment (MoCA),visit table,csv,"PATNO, EVENT_ID",Montreal_Cognitive_Assessment__MoCA_,pipeline,Cognitive screen (MCATOT)
+Non-motor Assessments,Neuropsychological Tests,"Clock Drawing, Trail Making, Boston Naming, Lexical Fluency (various)",visit table,csv,"PATNO, EVENT_ID",,,Other neuropsychological tests
+Non-motor Assessments,Neurobehavioral Tests,"Depression, anxiety and impulse-control scales (various)",visit table,csv,"PATNO, EVENT_ID",,,"Geriatric Depression Scale, State-Trait Anxiety Inventory, QUIP and others"
+Non-motor Assessments,Autonomic Tests,SCOPA-AUT,visit table,csv,"PATNO, EVENT_ID",,,Autonomic symptoms
+Non-motor Assessments,Olfactory Tests,University of Pennsylvania Smell Identification Test (UPSIT),visit table,csv,"PATNO, EVENT_ID",,,40-item smell test
+Non-motor Assessments,Sleep Disorder Tests,Epworth Sleepiness Scale and REM Sleep Behavior Disorder Questionnaire,visit table,csv,"PATNO, EVENT_ID",,,Daytime sleepiness and REM sleep behaviour disorder
+Non-motor Assessments,Other Cognitive Assessments,Other cognitive assessments (various),visit table,csv,"PATNO, EVENT_ID",,,"Cognitive categorisation, cognitive change and others"
+PPMI Online,PPMI Online,PPMI Online tables (various),online table,csv,PATNO,,,"Self-reported questionnaires from the online study, with its own codebook and dictionary"
+PPMI Remote,PPMI Remote,PPMI Remote screening tables (various),online table,csv,PATNO,,,"Remote screening questionnaires, smell tests and progress"
+PPMI FOUND,PPMI FOUND,FOUND questionnaires (various),online table,csv,PATNO,,,Lifetime risk factors of earlier PPMI participants
+Archived PPMI Data,Archived PPMI Data,"Prior data capture, publication archives, quarterly freezes",archive,csv,,,,Older snapshots; rarely needed
+Image Collections,Advanced Search,Image search results,imaging table,csv,"Subject ID, Visit, Modality, Image ID",,recommended,"One row per image series from Search, Advanced Search with CSV Download; loaded as the images table"
+Image Collections,SPECT,DaTscan SPECT images,images,zip (DICOM),"Subject, Visit, Image Data ID",,,Raw and reconstructed DaTscan series
+Image Collections,MRI,3D T1-weighted MRI,images,zip (DICOM or NIfTI),"Subject, Visit, Image Data ID",,,Structural MRI series; the source for regional grey-matter measures
+Image Collections,DTI,Diffusion MRI,images,zip (DICOM),"Subject, Visit, Image Data ID",,,Diffusion series
+Image Collections,MRI,"Resting-state fMRI, T2 FLAIR and neuromelanin MRI",images,zip (DICOM),"Subject, Visit, Image Data ID",,,Other MRI series
+Image Collections,PET,"AV-133 and tau PET images",images,zip (DICOM),"Subject, Visit, Image Data ID",,,PET sub-studies
+Genetic Data,Genetic Data,Whole-genome sequencing,genetic files,"VCF, gVCF",PATNO,,,Processed variants; raw BAM and FASTQ on request
+Genetic Data,Genetic Data,RNA sequencing,genetic files,tar.gz,PATNO,,,Transcript abundance estimates
+Genetic Data,Genetic Data,Other genetic data (various),genetic files,various,PATNO,,,"Arrays, exomes and their method documents"

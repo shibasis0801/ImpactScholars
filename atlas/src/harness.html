@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explorer harness</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 var(--font-ui); }
+  #bar { padding: 10px 24px; font-size: 13px; color: var(--muted); }
+  #pane { margin: 0 24px 24px; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; box-sizing: border-box; }
+  #pane h2 { margin: 0 0 4px; font-size: 18px; }
+  #pane p.blurb { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div id="bar">Harness. Query: ?m=&lt;module&gt;&amp;w=&lt;px&gt;&amp;theme=light|dark</div>
+<div id="pane"><h2 id="t"></h2><p class="blurb" id="b"></p><div id="mount"></div></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const name = q.get('m') || 'twoclock';
+  document.documentElement.dataset.theme = q.get('theme') || 'light';
+  document.getElementById('pane').style.width = (q.get('w') || 900) + 'px';
+  const s = document.createElement('script');
+  s.src = 'explorers/' + name + '.js?v=' + Date.now();
+  s.onload = () => {
+    const m = window.PPMIExplorers && window.PPMIExplorers[name];
+    if (!m) { document.getElementById('t').textContent = 'Module "' + name + '" did not register'; return; }
+    document.getElementById('t').textContent = m.title;
+    document.getElementById('b').textContent = m.blurb;
+    window.__inst = m.mount(document.getElementById('mount'), { synthetic: true, openSection: id => console.log('openSection', id) });
+  };
+  s.onerror = () => { document.getElementById('t').textContent = 'Could not load explorers/' + name + '.js'; };
+  document.head.appendChild(s);
+</script>
+</body>
+</html>

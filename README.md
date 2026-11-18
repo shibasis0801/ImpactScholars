@@ -1,6 +1,8 @@
 # One or two progression dimensions in early Parkinson's disease
 
-A project in the Neuromatch Impact Scholars Program (2026) that I work on with Shibasis Patnaik and Tomoya Kubota as group NeuroNexus. It uses the Parkinson's Progression Markers Initiative (PPMI) and runs for six months from November 2026. This repository holds the data pipeline and the preliminary data audit behind our proposal.
+A starting point for research with the Parkinson's Progression Markers Initiative (PPMI). It holds code that files your IDA downloads and puts every table behind one SQL interface, notebooks that show what data exists and how the tables relate, a guide to the study and the science (the PPMI atlas), and a preliminary data audit for one research question, set out below.
+
+New to PPMI or to this code? [Getting started](#getting-started) goes from a fresh clone to SQL over your own download, and the [PPMI atlas](#the-atlas) explains the study, the science and the data.
 
 ## Question
 
@@ -15,21 +17,11 @@ In the two-dimensional model, a dopaminergic dimension D is anchored by DaTscan 
 
 The CSS averages six robustly normed tests: HVLT-R immediate and delayed recall, Judgement of Line Orientation, Letter-Number Sequencing, the Symbol Digit Modalities Test and semantic fluency (Weintraub et al., 2025). It separates newly diagnosed Parkinson's disease from healthy controls well at baseline, but an average can hide change in one domain behind stability in another. The tests also behave differently over time. Turner et al. (2023) found little disease-specific decline outside Letter-Number Sequencing. Practice effects themselves predict later outcomes (Avila Pérez et al., 2025). The six tests fit a single latent factor poorly (González et al., 2025).
 
-## My part
-
-- **Data extraction.** I worked out which PPMI study tables and IDA image searches the project needs, and `notebooks/data.ipynb` says exactly what to download. `code/data.py` loads them into DuckDB, following the PPMI database Shibasis Patnaik set up for our group.
-- **Feasibility audit.** `notebooks/audit.ipynb` covers:
-  - which imaging modalities are longitudinal;
-  - which processed MRI measures repeat over visits;
-  - the grey-matter-volume cohort, and how much complete cognition it has at the same visits;
-  - how far that cohort overlaps with longitudinal DaTscan;
-  - the participant counts in our proposal.
-- **Cognitive Summary Score.** The audit scores all six tests against the published robust norms and computes the CSS.
-- **Proposal and presentation.** I prepared the data and feasibility results in our proposal and presentation (`slides.pdf`).
-
 ## Preliminary audit
 
-From our downloads of September to November 2026:
+`notebooks/audit.ipynb` checks whether PPMI can support the question. It covers which imaging modalities are longitudinal, which processed MRI measures repeat over visits, the grey-matter-volume cohort and how much complete cognition it has at the same visits, how far that cohort overlaps with longitudinal DaTscan, and how many participants contribute repeated measurements to each domain. It also scores all six tests against the published robust norms and computes the Cognitive Summary Score.
+
+Run on downloads from September to November 2026, it found:
 
 | Participants with repeated measurements | N |
 |---|---|
@@ -49,28 +41,98 @@ From our downloads of September to November 2026:
 | 1–2 | Finalise inclusion criteria, reproduce the published CSS, and check structural MRI quality and missing data |
 | 3–4 | Fit the one- and two-stage models, compare prediction on held-out participants, and run the planned sensitivity analyses |
 | 5 | Compare with the CSS and simpler imaging summaries, and test prediction of later motor and cognitive-functional outcomes |
-| 6 | Robustness checks, figures, reproducible code and the Neuromatch micropublication |
+| 6 | Robustness checks, figures, reproducible code and a short paper |
 
 ## Repository
 
 ```
-code/data.py            IDA downloads to DuckDB
-code/plot.py            figures for the notebooks
-notebooks/data.ipynb    what to download from IDA, and the data explained
-notebooks/audit.ipynb   the preliminary data audit
-literature/             open-access papers we build on
-slides.pdf              our project presentation
+atlas/index.html          the PPMI atlas: the study, the science, the data and the methods
+atlas/src/                its sources; python3 atlas/src/build.py rebuilds it
+code/catalog.csv          every kind of data IDA offers, with format, keys and file name
+code/data.py              loads your IDA downloads into one DuckDB connection
+code/ida.py               opens IDA, files your downloads, fetches image collections
+code/ppmi_pipeline/       the clean layer: typed tables, coverage views and cohort lists
+code/plot.py              figures for the notebooks
+notebooks/dataset.ipynb   what data exists, what you have, and how to get the rest
+notebooks/schema.ipynb    how the tables relate: keys, shared participants, visits, lineage
+notebooks/data.ipynb      what to download from IDA, and the data explained
+notebooks/audit.ipynb     the preliminary data audit
+literature/               open-access papers cited below
 ```
 
-## Running it
+## Getting started
 
-PPMI data are not in this repository. Apply for access at [ppmi-info.org](https://www.ppmi-info.org/access-data-specimens/download-data). Then follow `notebooks/data.ipynb` to download the study tables and image searches into `~/ppmi`, or set `PPMI_DATA` to use another folder. With Python 3.10 or newer:
+PPMI data are not in this repository. Apply for access at [ppmi-info.org](https://www.ppmi-info.org/access-data-specimens/download-data) and accept the data use agreement; everyone who works with participant-level data needs their own approval.
+
+1. **Install**, with Python 3.10 or newer:
+
+   ```bash
+   git clone https://github.com/shibasis0801/ImpactScholars.git
+   cd ImpactScholars
+   python3 -m venv .venv
+   .venv/bin/pip install -r requirements.txt
+   ```
+
+2. **See what exists.** Open `notebooks/dataset.ipynb` with `.venv/bin/jupyter lab notebooks/dataset.ipynb`. It lists everything IDA offers from `code/catalog.csv`, marks what this project uses, and compares that with what you have downloaded.
+
+3. **Download.** IDA has no programming interface for study data, so the notebook opens the right IDA page and you tick the tables there. `ida.collect()` then files the downloads from your Downloads folder into the data folder. For an image collection, save IDA's *Advanced Download* URL list and run `ida.fetch("urls.txt")`.
+
+4. **Query.** `data.PPMI()` loads everything into one DuckDB connection:
+
+   ```python
+   import sys; sys.path.append("code")
+   import data
+   p = data.PPMI()
+   p.sql("SELECT COHORT_DEFINITION, count(*) AS participants FROM participant_status GROUP BY ALL")
+   p.sql("SELECT * FROM clean.availability_summary")
+   ```
+
+   or from a shell:
+
+   ```bash
+   .venv/bin/python code/data.py                                    # what is loaded
+   .venv/bin/python code/data.py "SELECT count(*) FROM clean.patients"
+   .venv/bin/python code/data.py --export ~/ppmi/ppmi.duckdb        # both layers in one file, for any SQL client
+   ```
+
+5. **Map it.** `notebooks/schema.ipynb` shows how the tables join, which participants and visits they share, and how the clean layer is built from the raw tables.
+
+### Where the data lives
+
+Downloads stay outside the repository, in `~/ppmi` or the folder named by `PPMI_DATA`:
+
+```
+~/ppmi/
+  study/       study-data CSVs as IDA names them, such as Participant_Status_10Nov2026.csv
+  imaging/     image-search exports (idaSearch_*.csv)
+  images/      unpacked DICOM and NIfTI files
+  downloads/   the original zips, and image collections fetched from a URL list
+```
+
+`ida.collect()` reads your Downloads folder, or the folder named by `IDA_DOWNLOADS`.
+
+### The SQL interface
+
+One in-memory DuckDB connection holds two layers. Nothing is written to disk unless you export it.
+
+| Layer | What it holds |
+|---|---|
+| raw | Every downloaded table as IDA ships it, named after its file in lower case: `Letter_-_Number_Sequencing_10Nov2026.csv` becomes `letter_number_sequencing`, and the newest download of a table wins. Columns are text; the macros `num(x)`, `ppmi_date(x)` and `visit(event)` convert them. Also `images` (image searches), `image_files` (downloaded scans), `catalog`, and the `cognition` view, which stacks the six cognitive tests. |
+| `clean` | Typed, deduplicated tables from `code/ppmi_pipeline`, keyed by `patient_id` and `event_id`: `clean.patients`, `clean.visits`, `clean.cognitive_assessments`, `clean.datscan_scans`, `clean.structural_scans`, coverage views and cohort lists. See [its README](code/ppmi_pipeline/README.md). |
+
+`p.tables()` lists the tables and `p.schema()` every column in both layers.
+
+### The atlas
+
+`atlas/index.html` is a guide to PPMI for anyone starting out: the study, the neuroscience, how each measurement is taken, the data (its section 5 goes with `dataset.ipynb`), the literature, the statistics and working under the data use agreement, with interactive explorers. Open it in a browser, or serve it so that its videos and papers open inside the page:
 
 ```bash
-pip install duckdb jupyterlab matplotlib numpy pandas
-cd notebooks
-jupyter lab
+python3 -m http.server 8777 --directory atlas
 ```
+
+Then open http://localhost:8777.
+
+### Data rules
 
 The PPMI data use agreement does not allow participant-level data to be shared, and it forbids applying AI tools to individual-level PPMI data. Keep raw data, participant identifiers and individual results out of version control.
 
