@@ -176,7 +176,7 @@ class PPMI:
         for path in sorted(study.glob("*.zip")):
             self.notes.append(f"{path.name} is still zipped: run ida.collect() or unzip it into study/.")
         for path in sorted(study.glob("*.xls*")):
-            self.notes.append(f"{path.name} is an Excel workbook and is not loaded: read it with pandas.read_excel (pip install openpyxl).")
+            self.notes.append(f"{path.name} is an Excel workbook and is not loaded: read it with pandas.read_excel(path, engine='calamine') after pip install python-calamine.")
         missing = [name for name in STUDY if table(name) not in self.files]
         if missing:
             warnings.warn(f"Not downloaded into {study} yet: {', '.join(missing)}. "

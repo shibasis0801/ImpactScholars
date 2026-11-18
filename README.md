@@ -127,7 +127,7 @@ One in-memory DuckDB connection holds two layers. Nothing is written to disk unl
 
 ### The atlas
 
-`atlas/index.html` is a guide to PPMI for anyone starting out: the study, the neuroscience, how each measurement is taken, the data (its section 5 goes with `atlas.ipynb` and `dataset.ipynb`), the literature, the statistics and working under the data use agreement, with interactive explorers. Open it in a browser, or serve it so that its videos and papers open inside the page:
+`atlas/index.html` is a guide to PPMI for anyone starting out: the study, the neuroscience, how each measurement is taken, the data (its section 5 goes with `atlas.ipynb` and `dataset.ipynb`, and 5.7 maps this repository and its notebooks), preprocessing raw downloads and images into tables with free tools and platforms (6.5 to 6.8), the literature, the statistics and working under the data use agreement, with interactive explorers. Open it in a browser, or serve it so that its videos and papers open inside the page:
 
 ```bash
 python3 -m http.server 8777 --directory atlas
