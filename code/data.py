@@ -178,8 +178,15 @@ ORDER BY "table", l.position NULLS LAST, "column"
 
 
 def release(path: Path) -> tuple[str, datetime]:
-    match = re.fullmatch(r"(.+)_(\d{2}[A-Za-z]{3}\d{4})", path.stem)
-    return (match[1], datetime.strptime(match[2], "%d%b%Y")) if match else (path.stem, datetime.min)
+    """A download's name without its date, and the date: IDA's 10Nov2026, or a curated data cut's extract date 20260810."""
+    for pattern, form in ((r"(.+)_(\d{2}[A-Za-z]{3}\d{4})", "%d%b%Y"), (r"(.+)_((?:19|20)\d{6})", "%Y%m%d")):
+        match = re.fullmatch(pattern, path.stem)
+        if match:
+            try:
+                return match[1], datetime.strptime(match[2], form)
+            except ValueError:
+                pass
+    return path.stem, datetime.min
 
 
 def table(name: str) -> str:
@@ -260,9 +267,9 @@ class PPMI:
 
     def _dictionary_file(self, filename: str) -> str | None:
         """The dictionary's file name that a download's name starts with, if any."""
-        row = self.db.execute("SELECT file FROM dictionary WHERE file <> '' AND starts_with(?, file) ORDER BY entry LIMIT 1",
-                              [filename]).fetchone()
-        return row[0] if row else None
+        rows = self.db.execute("SELECT file FROM dictionary WHERE file <> '' AND starts_with(?, file) ORDER BY entry LIMIT 1",
+                               [filename]).fetchall()
+        return rows[0][0] if rows else None
 
     def _load(self, name: str, path: Path) -> None:
         for encoding in ("utf-8", "latin-1"):
@@ -366,21 +373,22 @@ class PPMI:
         for name, path in self.paths.items():
             columns = self.db.table(name).columns
             count = "count(DISTINCT PATNO)" if "PATNO" in columns else "NULL"
-            total, participants = self.db.execute(f'SELECT count(*), {count} FROM "{name}"').fetchone()
+            total, participants = self.db.execute(f'SELECT count(*), {count} FROM "{name}"').fetchall()[0]
             day = self.releases[name].date() if self.releases[name] > datetime.min else None
             rows.append((name, path.name, day, total, participants, len(columns)))
-        total, participants, searches = self.db.execute("SELECT count(*), count(DISTINCT PATNO), count(DISTINCT file) FROM images").fetchone()
+        total, participants, searches = self.db.execute("SELECT count(*), count(DISTINCT PATNO), count(DISTINCT file) FROM images").fetchall()[0]
         if total:
             rows.append(("images", f"{searches} search CSVs", None, total, participants, len(self.db.table("images").columns)))
         for dataset, pattern in IMAGE_SERIES.items():
             total, participants = self.db.execute("SELECT count(*), count(DISTINCT PATNO) FROM image_files WHERE regexp_matches(lower(series), ?)",
-                                                  [pattern]).fetchone()
+                                                  [pattern]).fetchall()[0]
             if total:
                 rows.append((f"image_files: {dataset}", f"{total:,} image series", None, total, participants, IMAGE_COLUMNS.count(",") + 1))
         workbooks = {}
-        for path in sorted((self.root / "study").glob("*.xls*")):
-            if path not in self.paths.values():
-                workbooks[table(self._dictionary_file(path.name) or path.stem)] = path.name
+        for path in sorted((self.root / "study").glob("*.xls*"), key=lambda path: release(path)[1]):
+            name = table(self._dictionary_file(path.name) or release(path)[0])
+            if path not in self.paths.values() and name not in self.files:
+                workbooks[name] = path.name
         rows += [(name, filename, None, None, None, None) for name, filename in workbooks.items()]
         documents = {table(release(path)[0]): path.name for path in sorted((self.root / "docs").glob("*.pdf"))}
         rows += [(name, filename, None, None, None, None) for name, filename in documents.items() if name not in self.files]
@@ -463,7 +471,7 @@ class PPMI:
             params.append(sample_type)
         self.db.execute(f"""CREATE OR REPLACE TEMP TABLE biospecimen_values AS
             SELECT patient_id, event_id, test_name, value FROM clean.biospecimen_results WHERE {' AND '.join(where)}""", params)
-        if not self.db.execute("SELECT count(*) FROM biospecimen_values").fetchone()[0]:
+        if not self.db.execute("SELECT count(*) FROM biospecimen_values").fetchall()[0][0]:
             return self.sql("SELECT NULL::VARCHAR AS patient_id, NULL::VARCHAR AS event_id WHERE false")
         return self.sql("PIVOT biospecimen_values ON test_name USING median(value) GROUP BY patient_id, event_id "
                         "ORDER BY patient_id, event_id")
@@ -512,10 +520,9 @@ class PPMI:
         return path
 
     def save(self, name: str, frame: pd.DataFrame) -> None:
-        """Load a DataFrame, such as a sheet read from a workbook, as a table."""
-        with self.db.cursor() as cursor:
-            cursor.register("incoming", frame)
-            cursor.execute(f'CREATE OR REPLACE TABLE memory.main."{name}" AS SELECT * FROM incoming')
+        """Load a DataFrame, such as a sheet read from a workbook, as a table of text columns like the CSV downloads.
+        DuckDB reads the frame by its variable name, on this connection, so the table is visible to it at once."""
+        self.db.execute(f'CREATE OR REPLACE TABLE memory.main."{name}" AS SELECT COLUMNS(*)::VARCHAR FROM frame')
 
     def __repr__(self) -> str:
         layers = "main and clean" if any(name.startswith("clean.") for name in self.tables()) else "main only"
