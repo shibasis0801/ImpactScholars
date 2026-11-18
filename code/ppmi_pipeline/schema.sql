@@ -173,3 +173,34 @@ SELECT k.patient_id, s.cohort, s.enrollment_status, s.enrollment_age, s.enrollme
        d.sex_code, d.handedness_code, e.education_years
 FROM known k LEFT JOIN participant_status s USING (patient_id)
 LEFT JOIN demographics d USING (patient_id) LEFT JOIN education e USING (patient_id);
+
+
+-- The dopaminergic medication log, one row per drug episode. LEDD is a daily dose in mg, or for COMT inhibitors
+-- a fraction of the levodopa dose written like "LD x 0.33". Levodopa rows are recognised by drug name.
+CREATE TABLE medications AS
+SELECT DISTINCT participant_id(patno) AS patient_id, event_code(event_id) AS event_id, clean_text(rec_id) AS record_id,
+       clean_text(ledtrt) AS drug, number_value(leddstrmg) AS strength_mg, number_value(leddose) AS dose,
+       number_value(leddosfrq) AS frequency, clean_text(ledd) AS ledd_text,
+       number_value(regexp_replace(clean_text(ledd), '(?i)\s*mg$', '')) AS ledd_mg,
+       coalesce(try_cast(regexp_extract(clean_text(ledd), '(?i)^LD\s*[x*×]\s*([0-9]*\.?[0-9]+)$', 1) AS DOUBLE),
+                try_cast(regexp_extract(clean_text(ledd), '(?i)^([0-9]*\.?[0-9]+)\s*[x*×]\s*LD$', 1) AS DOUBLE)) AS levodopa_fraction,
+       month_value(startdt) AS start_month, month_value(stopdt) AS stop_month,
+       regexp_matches(lower(coalesce(clean_text(ledtrt), '')), 'levodopa|sinemet|madopar|rytary|duopa|duodopa|inbrija|crexont|dhivy|parcopa')
+           AND NOT regexp_matches(lower(coalesce(clean_text(ledtrt), '')), 'entacapone|stalevo') AS is_levodopa
+FROM raw_ledd WHERE participant_id(patno) IS NOT NULL;
+
+-- Biospecimen results in long form, one row per result. A value beyond an assay's range keeps its limit as the value,
+-- with censored set to 'below' or 'above'. Text results such as SAA calls keep a NULL value.
+CREATE TABLE biospecimen_results AS
+WITH results AS (
+    SELECT participant_id(patno) AS patient_id, event_code(event_id) AS event_id, clean_text(testname) AS test_name,
+           clean_text(type) AS sample_type, clean_text(projectid) AS project_id, clean_text(units) AS units,
+           clean_text(testvalue) AS value_text
+    FROM raw_biospecimen WHERE participant_id(patno) IS NOT NULL AND clean_text(testname) IS NOT NULL
+)
+SELECT *,
+       CASE WHEN regexp_matches(value_text, '^<') OR regexp_matches(value_text, '(?i)below|lloq|undetect|\bbdl\b') THEN 'below'
+            WHEN regexp_matches(value_text, '^>') OR regexp_matches(value_text, '(?i)above|uloq') THEN 'above' END AS censored,
+       coalesce(number_value(value_text),
+                try_cast(regexp_extract(value_text, '^[<>]=?\s*([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)$', 1) AS DOUBLE)) AS value
+FROM results;

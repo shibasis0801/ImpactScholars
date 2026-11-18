@@ -29,6 +29,9 @@ CSV_EXPORTS = {
     "structural_scans": "ALL",
     "longitudinal_datscan": "patient_id, scan_month, event_id, sbr_method, image_id, record_id",
     "longitudinal_structural": "patient_id, scan_month, event_id, image_id",
+    "medications": "ALL",
+    "ledd_by_visit": "patient_id, visit_month, event_id",
+    "biospecimen_results": "ALL",
     "source_manifest": "source_key",
 }
 

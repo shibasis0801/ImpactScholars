@@ -9,12 +9,15 @@
 
 The connection holds two layers:
     main    every downloaded table exactly as IDA ships it (all columns as text, named after the file),
-            plus images (image searches), image_files (downloaded images), catalog and the cognition view
+            plus images (image searches), image_files (downloaded images), catalog and the cognition view.
+            An Excel workbook such as the Curated Data Cut loads too: its largest sheet under the file's name.
     clean   the pipeline in ppmi_pipeline/: typed, deduplicated tables such as clean.patients,
-            clean.visits, clean.cognitive_assessments, clean.datscan_scans and clean.structural_scans
+            clean.visits, clean.cognitive_assessments, clean.datscan_scans, clean.structural_scans,
+            clean.ledd_by_visit and clean.biospecimen_results; p.biospecimens() pivots the last one
 
 The data folder:
-    study/    Study Data CSVs, named as IDA names them, for example Participant_Status_10Nov2026.csv
+    study/    Study Data CSVs, named as IDA names them, for example Participant_Status_10Nov2026.csv,
+              and the Curated Data Cut workbook
     imaging/  image-search CSVs from IDA Advanced Search
     images/   unpacked image downloads (ida.collect and ida.fetch put them here)
     docs/     PDFs that came in a zip of study tables
@@ -175,8 +178,8 @@ class PPMI:
             self._load(table(release(path)[0]), path)
         for path in sorted(study.glob("*.zip")):
             self.notes.append(f"{path.name} is still zipped: run ida.collect() or unzip it into study/.")
-        for path in sorted(study.glob("*.xls*")):
-            self.notes.append(f"{path.name} is an Excel workbook and is not loaded: read it with pandas.read_excel(path, engine='calamine') after pip install python-calamine.")
+        for path in sorted(study.glob("*.xls*"), key=lambda path: release(path)[1], reverse=True):
+            self._load_workbook(path)
         missing = [name for name in STUDY if table(name) not in self.files]
         if missing:
             warnings.warn(f"Not downloaded into {study} yet: {', '.join(missing)}. "
@@ -205,6 +208,28 @@ class PPMI:
             return
         if encoding != "utf-8":
             self.notes.append(f"{path.name} is not UTF-8, so it was read as Latin-1.")
+        self._tidy(name, path)
+
+    def _load_workbook(self, path: Path) -> None:
+        """Load the largest sheet under the file's table name and any other sheet as <name>_<sheet>, all as text."""
+        try:
+            sheets = pd.read_excel(path, sheet_name=None, dtype=str, engine="calamine")
+        except ImportError:
+            self.notes.append(f"{path.name} is an Excel workbook and is not loaded: pip install python-calamine, then load again.")
+            return
+        except Exception as error:
+            self.notes.append(f"{path.name} could not be read ({type(error).__name__}) and is not loaded.")
+            return
+        stem = next((file for file in catalog().file if file and path.name.startswith(file)), release(path)[0])
+        largest = max(sheets, key=lambda sheet: len(sheets[sheet]), default=None)
+        for sheet, frame in sheets.items():
+            name = table(stem) if sheet == largest else f"{table(stem)}_{table(str(sheet))}"
+            if name in self.files:
+                continue
+            self.save(name, frame.rename(columns=lambda column: str(column).strip()))
+            self._tidy(name, path)
+
+    def _tidy(self, name: str, path: Path) -> None:
         columns = self.db.table(name).columns
         if "PATNO" in columns:
             self.db.execute(f"""UPDATE "{name}" SET PATNO = regexp_replace(trim(PATNO), '\\.0+$', '')""")
@@ -237,6 +262,9 @@ class PPMI:
             self.db.execute("USE memory")
             self.db.execute("DETACH clean")
         else:
+            for filename, status in self.db.execute(
+                    "SELECT filename, status FROM clean.source_manifest WHERE status LIKE 'skipped%'").fetchall():
+                self.notes.append(f"{filename} is not in the clean layer ({status}).")
             self.db.execute("USE memory")
         finally:
             for kind, name in self.db.execute("""
@@ -251,6 +279,29 @@ class PPMI:
         except duckdb.CatalogException as error:
             raise LookupError(f"{error}\nLoaded from {self.root}: {len(self.files)} study tables. "
                               "p.inventory() lists what is downloaded; notebooks/dataset.ipynb shows how to get the rest.") from None
+
+    def biospecimens(self, tests=None, project=None, sample_type=None) -> pd.DataFrame:
+        """One row per participant and visit and one column per test: the median of its numeric results.
+
+        A result beyond an assay's range enters at its limit; clean.biospecimen_results flags it in censored.
+        Where several projects measured an analyte, choose one with project (see project_id).
+        """
+        where, params = ["value IS NOT NULL"], []
+        if tests:
+            where.append("list_contains(?, test_name)")
+            params.append(list(tests))
+        if project is not None:
+            where.append("project_id = ?")
+            params.append(str(project))
+        if sample_type is not None:
+            where.append("lower(sample_type) = lower(?)")
+            params.append(sample_type)
+        long = self.sql(f"SELECT patient_id, event_id, test_name, value FROM clean.biospecimen_results WHERE {' AND '.join(where)}", *params)
+        if long.empty:
+            return pd.DataFrame(columns=["patient_id", "event_id"])
+        wide = long.pivot_table(index=["patient_id", "event_id"], columns="test_name", values="value", aggfunc="median")
+        wide.columns.name = None
+        return wide.reset_index()
 
     def tables(self) -> list[str]:
         rows = self.db.execute("""
@@ -292,6 +343,8 @@ class PPMI:
                               "rows": rows, "participants": participants, "columns": len(IMAGE_COLUMNS)})
         workbooks = {}
         for path in sorted((self.root / "study").glob("*.xls*")):
+            if path in self.paths.values():
+                continue
             stem = next((file for file in listed.file if file and path.name.startswith(file)), path.stem)
             workbooks[table(stem)] = path.name
         found += [{"table": name, "downloaded": file, "release": None, "rows": None, "participants": None, "columns": None}

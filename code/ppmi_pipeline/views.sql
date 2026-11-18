@@ -140,3 +140,25 @@ WHERE l.modality = 'datscan' AND l.sample_rank <= 2;
 CREATE VIEW longitudinal_structural AS
 SELECT s.* FROM usable_structural s JOIN longitudinal_patients l USING (patient_id)
 WHERE l.modality = 'structural' AND l.sample_rank <= 2;
+
+-- LEDD at each visit, from the drugs taken in the visit's first observed month. A drug that starts or stops in that
+-- month counts, a missing start month means before enrolment and a missing stop month means still taken. A COMT
+-- inhibitor adds its fraction of the levodopa LEDD taken with it. The view stays empty until the medication log loads.
+CREATE VIEW ledd_by_visit AS
+WITH taken AS (
+    SELECT v.patient_id, v.event_id, m.ledd_mg, m.levodopa_fraction, m.is_levodopa
+    FROM visits v JOIN medications m USING (patient_id)
+    WHERE coalesce(m.start_month <= v.first_observed_month, true)
+      AND coalesce(m.stop_month >= v.first_observed_month, true)
+), totals AS (
+    SELECT patient_id, event_id, sum(ledd_mg) AS fixed_ledd, sum(ledd_mg) FILTER (is_levodopa) AS levodopa_ledd,
+           sum(levodopa_fraction) AS levodopa_fractions, count(*) AS n_drugs,
+           count(*) FILTER (ledd_mg IS NULL AND levodopa_fraction IS NULL) AS n_without_ledd
+    FROM taken GROUP BY patient_id, event_id
+)
+SELECT v.patient_id, v.event_id, v.first_observed_month AS visit_month,
+       coalesce(t.fixed_ledd, 0) + coalesce(t.levodopa_fractions, 0) * coalesce(t.levodopa_ledd, 0) AS ledd_total,
+       coalesce(t.levodopa_ledd, 0) AS levodopa_ledd, coalesce(t.n_drugs, 0) AS n_drugs,
+       coalesce(t.n_without_ledd, 0) AS n_without_ledd
+FROM visits v LEFT JOIN totals t USING (patient_id, event_id)
+WHERE v.first_observed_month IS NOT NULL AND EXISTS (FROM medications);

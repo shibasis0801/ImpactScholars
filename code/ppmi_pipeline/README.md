@@ -1,6 +1,6 @@
 # The clean layer
 
-This package turns PPMI study tables from LONI IDA into typed, deduplicated DuckDB tables, coverage views and cohort lists. `data.PPMI()` builds it into the `clean` schema of the same connection as the raw tables, so most people never call it directly:
+This package turns PPMI study tables from LONI IDA into typed, deduplicated DuckDB tables, coverage views, cohort lists, LEDD per visit and biospecimen results. `data.PPMI()` builds it into the `clean` schema of the same connection as the raw tables, so most people never call it directly:
 
 ```python
 import sys; sys.path.append("code")
@@ -15,7 +15,7 @@ The PPMI data use agreement prohibits applying AI tools to individual-level PPMI
 
 ## Input files
 
-The loader finds tables by file name, ignoring punctuation and case and accepting IDA's release suffix such as `_10Nov2026`. `data.PPMI()` passes it the newest download of each table. A missing table produces a `missing` entry in `clean.source_manifest` and leaves its clean tables empty; a table with missing required headers stops the build. [IDA study data](https://ida.loni.usc.edu/pages/access/studyData.jsp?project=PPMI), [PPMI Data Dictionary and Code List](https://www.ppmi-info.org/access-data-specimens/guidance-resources)
+The loader finds tables by file name, ignoring punctuation and case and accepting IDA's release suffix such as `_10Nov2026`. `data.PPMI()` passes it the newest download of each table. A missing table produces a `missing` entry in `clean.source_manifest` and leaves its clean tables empty. A core table with missing required headers stops the build. The medication log and the biospecimen results are optional: they are recorded as `skipped: no ... column`, left empty and named in `p.notes`. If that happens, add the header the file uses as an alias in [sources.py](sources.py). [IDA study data](https://ida.loni.usc.edu/pages/access/studyData.jsp?project=PPMI), [PPMI Data Dictionary and Code List](https://www.ppmi-info.org/access-data-specimens/guidance-resources)
 
 | Input | File stems or IDA label | Main fields |
 | --- | --- | --- |
@@ -29,6 +29,8 @@ The loader finds tables by file name, ignoring punctuation and case and acceptin
 | DaTScan SBRs | `Xing_Core_Lab_-_Quant_SBR` and optional `DaTScan_SBR_Analysis` | `DATSCAN_DATE`, four regional SBRs, analyzed status and ligand when supplied |
 | Structural MRI | `Grey_Matter_Volume` | `IMAGEID`, `MRIDATE`, `GM_VOLUME`, optional `UNITS` |
 | MRI acquisition | `Xing_Core_Lab_-_MRI_acquisition_metadata` | `PATNO`, `EVENT_ID`, `MRI_SCAN_DATE`, `MRI_SEQ_T1_WEIGHTED`, `MRI_IMAGE_ACCEPTABLE` |
+| Medication log | `LEDD_Concomitant_Medication_Log` | `PATNO`, `LEDTRT`, `LEDD`, `STARTDT`, `STOPDT`; optional `EVENT_ID`, `REC_ID`, `LEDDSTRMG`, `LEDDOSE`, `LEDDOSFRQ` |
+| Biospecimen results | `Current_Biospecimen_Analysis_Results` | `PATNO`, `CLINICAL_EVENT` or `EVENT_ID`, `TESTNAME`, `TESTVALUE`; optional `UNITS`, `TYPE`, `PROJECTID` |
 
 ## Cleaning rules
 
@@ -37,6 +39,10 @@ The cognitive columns are raw scores. Immediate recall requires three valid tria
 Assessments are identified by `PATNO` and `EVENT_ID` or `CLINICAL_EVENT`. The loader trims each `PATNO` and stores a whole number written with a decimal, such as `3001.0`, as `3001`, so one participant keeps one ID across tables. Other spellings, such as a leading zero, are kept as written. Scan rows with a participant ID are kept even if their visit code is blank. Dates are stored at month precision, so a stored day of `01` is a month marker. Study schedules vary by cohort, and one visit can hold measurements from different months. [PPMI Data User Guide](https://www.ppmi-info.org/sites/default/files/docs/PPMI%20Data%20User%20Guide.pdf)
 
 DaTScan coverage uses eligible scans with at least one finite regional SBR. Xing uses the cerebral white matter reference and archived Invicro the occipital reference; both methods are labeled and kept as separate series. A scan is excluded only when its ligand names another tracer or its analyzed flag is negative (`No`, `N`, `False`, `0`, or text starting with `Not`). A blank ligand or analyzed flag is kept, for compatibility with older PPMI rows. Grey matter volume coverage uses positive finite values, and `volume_unit` stays blank when the source gives no unit. These are exported quantitative measures; nothing here processes DICOM or NIfTI images. [MJFF PIE DaTScan source mapping](https://github.com/MJFF-ResearchCommunity/PIE/blob/main/pie/imaging/labels.py)
+
+The medication log keeps one row per distinct drug episode. `LEDD` is read as a daily dose in mg or, for COMT inhibitors written like `LD x 0.33`, as a fraction of the levodopa dose. Levodopa rows are recognised by drug name (levodopa, Sinemet, Madopar, Rytary, Duopa and similar, but not Stalevo or entacapone). `ledd_by_visit` counts a drug at a visit when it started in or before the visit's first observed month and had not stopped before it; a blank start or stop month leaves that side open. The total adds the fixed doses and each COMT fraction times the levodopa dose. A visit with no logged drug gets 0, which assumes the log is complete, and `n_without_ledd` counts drugs whose LEDD could not be read. Check the totals against the LEDD in the Curated Data Cut.
+
+Biospecimen results stay in long form, one row per result, with project, sample type, units and the text as supplied. `value` is the number. A result written like `<0.5` or `>1000` keeps its limit as `value` and sets `censored` to `below` or `above`; one described in words, such as below detection limit, is flagged with no `value`. Category results such as SAA calls keep a blank `value`. `p.biospecimens(tests, project=..., sample_type=...)` pivots numeric results to one column per test, taking the median where a visit has several; choose one project where several measured the same analyte.
 
 ## Tables and views
 
@@ -60,6 +66,9 @@ DaTScan coverage uses eligible scans with at least one finite regional SBR. Xing
 | `cohort_both_imaging` | Participants with at least one usable measurement from each imaging modality anywhere in their record |
 | `cohort_all_three` | Participants in all three cohorts. Use `n_same_event_all_visits` when the analysis requires shared events. |
 | `longitudinal_patients`, `longitudinal_datscan`, `longitudinal_structural` | Usable scans at every available visit for up to two selected participants per modality |
+| `medications` | One row per distinct drug episode, with LEDD in mg or as a levodopa fraction, start and stop months, and a levodopa flag |
+| `ledd_by_visit` | One row per visit with an observed month, once a medication log is loaded: total LEDD, levodopa LEDD, number of drugs, and drugs without a readable LEDD |
+| `biospecimen_results` | One row per biospecimen result: test, sample type, project, units, text and numeric value, and a censoring flag |
 
 ## Cognitive Summary Score
 
@@ -81,4 +90,4 @@ p.db.execute("USE memory")
 python -m ppmi_pipeline.pipeline build --input ~/ppmi/study --output ~/ppmi/builds/2026-11-18 --release 10Nov2026
 ```
 
-It writes `ppmi.duckdb`, one CSV for each of the four cohorts, and CSVs for patients, visits, neurological exams, cognitive scores by visit, all supplied scan records, participant and visit coverage, and source availability. A cohort with no members has a header-only CSV. With `altair` and `vl-convert-python` installed it also saves HTML charts of coverage and of up to two longitudinal participants per imaging modality. The output folder must be new and outside the repository, and the build stops if an input folder holds two downloads of the same table.
+It writes `ppmi.duckdb`, one CSV for each of the four cohorts, and CSVs for patients, visits, neurological exams, cognitive scores by visit, all supplied scan records, participant and visit coverage, the medication log, LEDD by visit, biospecimen results, and source availability. A cohort with no members has a header-only CSV. With `altair` and `vl-convert-python` installed it also saves HTML charts of coverage and of up to two longitudinal participants per imaging modality. The output folder must be new and outside the repository, and the build stops if an input folder holds two downloads of the same table.

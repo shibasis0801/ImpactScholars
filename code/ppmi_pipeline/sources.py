@@ -11,6 +11,7 @@ class Source:
     required: str
     optional: str = ""
     aliases: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    strict: bool = True
 
 
 SOURCES = {
@@ -42,6 +43,11 @@ SOURCES = {
     "mri_acquisition": Source(("Xing_Core_Lab_MRI_Acquisition_Metadata", "MRI_Acquisition_Metadata"),
                               "patno mri_seq_t1_weighted", "event_id mri_scan_date mri_image_acceptable",
                               {"mri_scan_date": ("infodt",)}),
+    # Optional inputs: a file without the required headers is skipped instead of stopping the build.
+    "ledd": Source(("LEDD_Concomitant_Medication_Log",), "patno ledtrt ledd startdt stopdt",
+                   "event_id rec_id leddstrmg leddose leddosfrq", strict=False),
+    "biospecimen": Source(("Current_Biospecimen_Analysis_Results",), "patno event_id testname testvalue",
+                          "units type projectid", strict=False),
 }
 
 
@@ -118,13 +124,16 @@ def stage(conn, inputs):
                 missing.append(col.upper())
             expr = "NULL" if actual is None else identifier(actual)
             select.append(f"CAST({expr} AS VARCHAR) AS {col}")
+        status = "missing" if item is None else "loaded"
         if item is not None and missing:
-            raise ValueError(f"{key} is missing required headers: {', '.join(missing)}")
+            if source.strict:
+                raise ValueError(f"{key} is missing required headers: {', '.join(missing)}")
+            status = f"skipped: no {', '.join(missing)} column"
 
-        tail = "WHERE false" if item is None else "FROM incoming"
+        tail = "WHERE false" if item is None else "FROM incoming" + ("" if status == "loaded" else " WHERE false")
         conn.execute(f"CREATE TEMP TABLE raw_{key} AS SELECT {', '.join(select)} {tail}")
         count = conn.execute(f"SELECT count(*) FROM raw_{key}").fetchone()[0]
         conn.execute("INSERT INTO source_manifest VALUES (?, ?, ?, ?)", [
             key, item.name if isinstance(item, Path) else (f"{key} (DataFrame)" if item is not None else None),
-            "missing" if item is None else "loaded", count,
+            status, count,
         ])
