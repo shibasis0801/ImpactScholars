@@ -6,6 +6,8 @@ and this module borrows that browser session to make the same requests IDA's own
     ida.signin()             takes your browser's IDA session (see below), checks it and keeps it in memory
     ida.offer()              lists every study file IDA offers you into data/ida/offer.csv; data.PPMI loads it as ida_files
     ida.download(ids)        downloads study files by their IDA file ID, then files them like collect()
+    ida.collections()        lists your image collections, with their IDs and numbers of images
+    ida.images("name")       saves an image collection's list into imaging/, then downloads its images and unpacks them
     ida.collect()            files what you downloaded yourself: study CSVs and zips (with their PDFs), image-search CSVs, image zips
     ida.fetch("urls.txt")    downloads an image collection from the URL list that Advanced Download gives
     ida.browse("study")      opens a page of IDA in your browser
@@ -16,6 +18,10 @@ ida.signin() and paste it into the box, which hides what you paste; or save it a
 signin() reads. Firefox and Safari have the same Copy as cURL, and the request's Cookie header alone works too.
 It is your sign-in for as long as the IDA session lasts: it stays in memory or in data/, which git ignores, it is
 sent only to ida.loni.usc.edu, and nothing here prints it.
+
+Images: you choose them in your browser, because IDA's search results list participants. In Search > Advanced
+Search, tick the modality and visits you want and Search; then select all the results and Add To Collection, naming a
+new collection. images() does the rest with the same session: no Download buttons and no URL lists.
 
 Nothing here reads the contents of a data file except the header line of a CSV, to tell searches from tables.
 Each function returns a small DuckDB table of what it did: print it, or query it.
@@ -39,6 +45,7 @@ import urllib.request
 import warnings
 import webbrowser
 import zipfile
+from xml.etree import ElementTree
 
 import duckdb
 
@@ -47,6 +54,7 @@ DATA = REPOSITORY / "data"
 PAGES = {
     "study": "https://ida.loni.usc.edu/pages/access/studyData.jsp?project=PPMI",
     "search": "https://ida.loni.usc.edu/pages/access/search.jsp?project=PPMI&tab=advSearch&page=SEARCH&subPage=NEW_ADV_QUERY",
+    "collections": "https://ida.loni.usc.edu/pages/access/search.jsp?tab=collection&project=PPMI&page=DOWNLOADS&subPage=IMAGE_COLLECTIONS",
     "login": "https://ida.loni.usc.edu/login.jsp?project=PPMI",
     "apply": "https://www.ppmi-info.org/access-data-specimens/download-data",
 }
@@ -55,6 +63,15 @@ SITE = "https://ida.loni.usc.edu"
 STUDY_PAGE = SITE + "/pages/access/studyData.jsp"
 STUDY_PATHS = SITE + "/pages/ajax/getStudyData"
 STUDY_FILES = SITE + "/download/files/study/"
+# The requests IDA's Image Collections page makes: the page, your collections, opening one, its image list as a CSV,
+# the zips of its images as archived, and a zip.
+COLLECTIONS_PAGE = SITE + "/pages/access/search.jsp?tab=collection&project=PPMI&page=DOWNLOADS&subPage=IMAGE_COLLECTIONS"
+COLLECT_TREE = SITE + "/pages/ajax/search/collectTree"
+COLLECT_DETAIL = SITE + "/pages/ajax/search/collectDetail"
+COLLECT_CSV = SITE + "/pages/table/searchCollect"
+DOWNLOAD_KEYS = SITE + "/pages/ajax/download/downloadKeys"
+IMAGE_FILES = SITE + "/download/files/"
+WHOSE = {"myCollections": "yours", "mySharedCollections": "yours, shared", "otherCollections": "shared with you"}
 AGENT = "Mozilla/5.0 (ImpactScholars PPMI notebooks)"
 IMAGES = (".dcm", ".nii", ".nii.gz", ".img", ".hdr")
 DATED = re.compile(r".+_\d{2}[A-Za-z]{3}\d{4}\.csv$")
@@ -201,16 +218,25 @@ def _filename(response, url: str) -> str:
     return Path(header.get_filename() or urllib.parse.unquote(urllib.parse.urlparse(url).path)).name or "download.zip"
 
 
-def _download(url: str, folder: Path, retries: int, label: str | None = None, headers: dict | None = None) -> Path:
-    key = sha1(url.encode()).hexdigest()[:16]
-    partial, receipt = folder / f".{key}.part", folder / f".{key}.done"
+def _received(url: str, folder: Path) -> Path | None:
+    """The file that a finished download of url left in folder, while it is still there."""
+    receipt = folder / f".{sha1(url.encode()).hexdigest()[:16]}.done"
     if receipt.exists() and (folder / receipt.read_text()).exists():
         return folder / receipt.read_text()
+    return None
+
+
+def _download(url: str, folder: Path, retries: int, label: str | None = None, headers: dict | None = None,
+              timeout: float = 120) -> Path:
+    key = sha1(url.encode()).hexdigest()[:16]
+    partial, receipt = folder / f".{key}.part", folder / f".{key}.done"
+    if received := _received(url, folder):
+        return received
     for attempt in range(retries):
         done = partial.stat().st_size if partial.exists() else 0
         request = urllib.request.Request(url, headers={**(headers or {}), **({"Range": f"bytes={done}-"} if done else {})})
         try:
-            with _OPENER.open(request, timeout=120) as response:
+            with _OPENER.open(request, timeout=timeout) as response:
                 start = done if response.status == 206 else 0
                 with partial.open("ab" if start else "wb") as sink:
                     shutil.copyfileobj(response, sink, 1 << 20)
@@ -238,22 +264,22 @@ def _is_page(path: Path) -> bool:
     return start.startswith((b"<!doctype html", b"<html")) and path.suffix.lower() not in (".html", ".htm")
 
 
-def fetch(urls: str | Path | list[str], folder: str | Path | None = None, retries: int = 5) -> duckdb.DuckDBPyRelation:
-    """Download every URL in an IDA Advanced Download list, resuming broken transfers, and unpack the images.
-
-    In IDA: Search > Advanced Search, Add to Collection, then Data Collections > Advanced Download and save the URL list.
-    """
-    if not isinstance(urls, list):
-        urls = re.findall(r"https?://\S+", Path(urls).expanduser().read_text())
-    folder = root(folder)
-    downloads = folder / "downloads"
+def _fetch(urls: list[str], folder: Path, retries: int, headers: dict | None = None, stale: str | None = None,
+           downloads: Path | None = None, timeout: float = 120) -> list[tuple[str, int, int]]:
+    """Download each URL into downloads/ (or the folder given), resuming broken transfers, and unpack each zip's images
+    into images/: (file, bytes, image files unpacked). A download that is not a zip is removed; with stale, that stops
+    the run."""
+    downloads = downloads or folder / "downloads"
     downloads.mkdir(parents=True, exist_ok=True)
     report = []
     for url in urls:
-        path = _download(url, downloads, retries)
+        label = urllib.parse.unquote(Path(urllib.parse.urlparse(url).path).name)
+        path = _download(url, downloads, retries, label=label, headers=headers, timeout=timeout)
         if not zipfile.is_zipfile(path):
             size = path.stat().st_size
             path.unlink()
+            if stale:
+                raise PermissionError(stale.replace("{file}", label))
             warnings.warn(f"{path.name} is not a zip archive, so IDA sent a page instead of data: the link may have expired. "
                           "Save a new URL list in IDA and run fetch again.")
             report.append((path.name, size, 0))
@@ -261,7 +287,18 @@ def fetch(urls: str | Path | list[str], folder: str | Path | None = None, retrie
         with zipfile.ZipFile(path) as archive:
             unpacked = len(_extract(archive, [m for m in archive.namelist() if _is_image(m)], folder / "images", flatten=False))
         report.append((path.name, path.stat().st_size, unpacked))
-    return _report(report, {"file": "VARCHAR", "bytes": "BIGINT", "images unpacked": "BIGINT"})
+    return report
+
+
+def fetch(urls: str | Path | list[str], folder: str | Path | None = None, retries: int = 5) -> duckdb.DuckDBPyRelation:
+    """Download every URL in an IDA Advanced Download list, resuming broken transfers, and unpack the images.
+
+    In IDA: Search > Advanced Search, Add to Collection, then Data Collections > Advanced Download and save the URL list.
+    images() does the same for a collection without those clicks.
+    """
+    if not isinstance(urls, list):
+        urls = re.findall(r"https?://\S+", Path(urls).expanduser().read_text())
+    return _report(_fetch(urls, root(folder), retries), {"file": "VARCHAR", "bytes": "BIGINT", "images unpacked": "BIGINT"})
 
 
 def _quoted(option: str) -> str:
@@ -299,23 +336,27 @@ class _CookieStaysHome(urllib.request.HTTPRedirectHandler):
 _OPENER = urllib.request.build_opener(_CookieStaysHome)
 
 
-def _headers(session: Session | None, form: bool = False) -> dict[str, str]:
+def _headers(session: Session | None, form: bool = False, page: str | None = None, ajax: bool = False) -> dict[str, str]:
+    """The headers IDA's own pages send. page is the page a request comes from, Study Data unless given; forms, and the
+    requests the Image Collections page makes in the background, are XMLHttpRequests."""
     if session is None:
         return {}
-    headers = {"Cookie": session.cookie, "User-Agent": session.agent, "Referer": f"{STUDY_PAGE}?project=PPMI"}
+    headers = {"Cookie": session.cookie, "User-Agent": session.agent, "Referer": page or f"{STUDY_PAGE}?project=PPMI"}
+    if form or ajax:
+        headers["X-Requested-With"] = "XMLHttpRequest"
     if form:
-        headers |= {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "Origin": SITE,
-                    "X-Requested-With": "XMLHttpRequest"}
+        headers |= {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "Origin": SITE}
     return headers
 
 
-def _ask(url: str, session: Session, form: str | None = None, retries: int = 3) -> str:
+def _ask(url: str, session: Session, form: str | None = None, retries: int = 3, page: str | None = None,
+         ajax: bool = False, timeout: float = 120) -> str:
     """One request to IDA with your session; the page or answer it sends, as text."""
     data = None if form is None else form.encode()
     for attempt in range(retries):
         try:
-            request = urllib.request.Request(url, data=data, headers=_headers(session, form is not None))
-            with _OPENER.open(request, timeout=120) as response:
+            request = urllib.request.Request(url, data=data, headers=_headers(session, form is not None, page, ajax))
+            with _OPENER.open(request, timeout=timeout) as response:
                 return response.read().decode(response.headers.get_content_charset() or "utf-8", errors="replace")
         except urllib.error.HTTPError as error:
             if error.code in (401, 403):
@@ -493,3 +534,156 @@ def download(file_ids, folder: str | Path | None = None, batch: int = 10, retrie
             fetched.append((", ".join(chunk), got.name))
     filed = _file_downloads(landing, folder)
     return _report([(chunk, name, filed.get(name, "downloaded")) for chunk, name in fetched] + empty, columns)
+
+
+def _xml(answer: str) -> ElementTree.Element:
+    """IDA's XML answer to a request of its Image Collections page. Its sign-in page, or its NOT_LOGGED_IN error, in
+    place of an answer means the session has ended."""
+    try:
+        element = ElementTree.fromstring(answer.strip())
+    except ElementTree.ParseError:
+        raise PermissionError(EXPIRED) from None
+    error = element if element.tag == "errorMessage" else element.find(".//errorMessage")
+    if element.tag.rsplit("}", 1)[-1].lower() == "html" or (error is not None and error.get("message") == "NOT_LOGGED_IN"):
+        raise PermissionError(EXPIRED)
+    if error is not None:
+        raise RuntimeError(f"IDA could not do it: {error.get('message') or 'it gave no reason'}.")
+    return element
+
+
+def _count(value: str | None) -> int:
+    return int(re.sub(r"\D", "", value or "") or 0)
+
+
+def _collections(session: Session) -> list[tuple[str, str, str, int, int, str]]:
+    """Your image collections as the Image Collections page lists them: (name, ID, whose, images, downloaded, description)."""
+    _ask(COLLECTIONS_PAGE, session)
+    listing = _xml(_ask(COLLECT_TREE, session, page=COLLECTIONS_PAGE, ajax=True))
+    return [(node.get("name") or "", node.get("id") or "", WHOSE[node.tag], _count(node.get("total")),
+             _count(node.get("downloaded")), node.get("description") or "") for node in listing if node.tag in WHOSE]
+
+
+def collections(session: Session | None = None) -> duckdb.DuckDBPyRelation:
+    """Your image collections: yours, those you share and those shared with you, with each one's ID, its number of
+    images and how many of them IDA has marked as downloaded. images() downloads one by its name or ID."""
+    return _report(_collections(_signed(session)), {"collection": "VARCHAR", "id": "VARCHAR", "whose": "VARCHAR",
+                                                    "images": "BIGINT", "downloaded": "BIGINT", "description": "VARCHAR"})
+
+
+def _open(collection_id: str, subset: str, session: Session) -> tuple[int, int]:
+    """Open a collection, or its images not yet downloaded, as clicking it on the page does; IDA exports and downloads
+    the open one. Its number of images, and how many of them you may download."""
+    query = urllib.parse.urlencode({"collectionId": collection_id, "subset": subset, "sortColumn": 0, "isForwardSort": "true"})
+    answer = _xml(_ask(f"{COLLECT_DETAIL}?{query}", session, page=COLLECTIONS_PAGE, ajax=True))
+    if answer.get("id") in (None, "none"):
+        raise ValueError(f"IDA did not open collection {collection_id}.")
+    total = _count(answer.get("numberOfImages"))
+    return total, _count(answer.get("numberOfAccessibleImages")) if answer.get("numberOfAccessibleImages") else total
+
+
+def _links(collection_id: str, name: str, subset: str, session: Session) -> list[tuple[str, int]]:
+    """Ask for every image of the open collection as archived, as 1-Click Download does once All is ticked; the links to
+    the zips of IDA's default option, with their sizes. An image zip is named after the collection, numbered from the
+    second on."""
+    form = urllib.parse.urlencode({"existingName": "", "newName": "", "newDescription": "", "userAction": "",
+                                   "tab": "collection", "collectionId": collection_id, "subset": subset,
+                                   "format": "AS_ARCHIVED", "selectAll": "on"})
+    answer = _xml(_ask(DOWNLOAD_KEYS, session, form=form, retries=2, page=COLLECTIONS_PAGE, timeout=900))
+    zips = next(answer.iter("zipFiles"), None)
+    option = None if zips is None else zips.find("option1")
+    if option is None and zips is not None:
+        option = next(iter(zips), None)
+    files = [] if option is None else option.findall("zipFile")
+    if not files:
+        raise RuntimeError(f"IDA prepared no zip of collection {name}.")
+    zipped = urllib.parse.quote(name, safe="")
+    links = []
+    for number, file in enumerate(files):
+        path = file.get("path", "")
+        zip_name = f"{zipped}{number or ''}.zip" if "ida1/" in path else f"{zipped}_dataset.zip"
+        links.append((f"{IMAGE_FILES}{urllib.parse.quote(path.strip('/'), safe='/')}/{zip_name}", _count(file.get("size"))))
+    return links
+
+
+def images(collection: str, folder: str | Path | None = None, download: bool = True, only_new: bool = False,
+           refresh: bool = False, retries: int = 5, session: Session | None = None) -> duckdb.DuckDBPyRelation:
+    """Download an image collection with no clicks: its image list into imaging/, its images unpacked into images/.
+
+    collection is the name or ID of a collection that collections() lists. images() saves the collection's list as
+    imaging/<name>.csv, which data.PPMI loads into images; asks IDA for every image in it as archived, as 1-Click
+    Download does; keeps the links to the zips in ida/<name>_links.txt; and downloads and unpacks them as fetch() does.
+
+    download=False stops before downloading and lists the zips with their sizes; images() also stops when the disk has
+    too little space for them. Run it again after a broken transfer and it resumes with the same links. It asks IDA
+    for new links when the collection has changed, when refresh=True, and when only_new=True, which asks only for the
+    images IDA has not yet marked as downloaded.
+    """
+    session = _signed(session)
+    folder = root(folder)
+    listed = _collections(session)
+    wanted = str(collection).strip()
+    found = ([row for row in listed if row[1] == wanted] or [row for row in listed if row[0] == wanted]
+             or [row for row in listed if row[0].casefold() == wanted.casefold()])
+    if not found:
+        raise ValueError(f"IDA lists no image collection called {wanted!r}. Yours: {', '.join(sorted({row[0] for row in listed})) or 'none yet'}. "
+                         "Make one in your browser: Search > Advanced Search, select the results and Add To Collection.")
+    if len({row[1] for row in found}) > 1:
+        raise ValueError(f"More than one collection is called {wanted!r}: give its ID instead, one of {', '.join(row[1] for row in found)}.")
+    name, collection_id = found[0][:2]
+    stem = _stem(name, collection_id)
+    if any(row[1] != collection_id and _stem(row[0], row[1]).casefold() == stem.casefold() for row in listed):
+        stem += f"_{collection_id}"
+    columns = {"file": "VARCHAR", "holds": "VARCHAR", "bytes": "BIGINT", "image files unpacked": "BIGINT"}
+
+    total, allowed = _open(collection_id, "ALL", session)
+    listing = _ask(f"{COLLECT_CSV}?sortColumn=0&isForwardSort=true", session, page=COLLECTIONS_PAGE).lstrip("\ufeff")
+    if not _is_search([column.strip().strip('"').lower() for column in listing.split("\n", 1)[0].split(",")]):
+        if "<html" in listing[:4000].lower():
+            raise PermissionError(EXPIRED)
+        raise ValueError(f"IDA's image list of {name} is not a CSV this module recognises, so nothing was saved.")
+    target = folder / "imaging" / f"{stem}.csv"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(listing, encoding="utf-8", newline="")
+    holds = f"the list of its {total} images" + (f", {allowed} of which you may download" if allowed < total else "")
+    report = [(f"imaging/{target.name}", holds, target.stat().st_size, None)]
+
+    kept = folder / "ida" / f"{stem}_links.txt"
+    lines = kept.read_text().splitlines() if kept.exists() else []
+    if lines and lines[0] == f"# {allowed} images" and not (refresh or only_new):
+        links = [(parts[0], _count(parts[1]) if len(parts) > 1 else 0) for parts in map(str.split, lines[1:]) if parts]
+    else:
+        subset = "NOT_DOWNLOADED" if only_new else "ALL"
+        count = _open(collection_id, subset, session)[1] if only_new else allowed
+        if not count:
+            warnings.warn(f"IDA has no image in {name} for you to download" + (" that it has not marked as downloaded." if only_new else "."))
+            return _report(report, columns)
+        links = _links(collection_id, name, subset, session)
+        kept.parent.mkdir(parents=True, exist_ok=True)
+        kept.write_text("\n".join([f"# {allowed} images" if not only_new else "# new images",
+                                   *(f"{url} {size}" for url, size in links)]) + "\n")
+    downloads = folder / "downloads" / stem
+    kinds = ["dataset" if url.endswith("_dataset.zip") else "images" for url, _ in links]
+    if not download:
+        return _report(report + [(f"downloads/{stem}/{urllib.parse.unquote(url.rsplit('/', 1)[1])}",
+                                  f"{kind}, {'downloaded' if _received(url, downloads) else 'not downloaded yet'}", size, None)
+                                 for (url, size), kind in zip(links, kinds)], columns)
+    needed, free = 2 * sum(size for url, size in links if not _received(url, downloads)), shutil.disk_usage(folder).free
+    if needed > free:
+        raise OSError(f"{name} needs about {needed / 1e9:,.1f} GB more, for its zips and the images unpacked from them, and "
+                      f"the disk of {folder} has {free / 1e9:,.1f} GB free. Free some space, or set PPMI_DATA to a "
+                      "folder on a larger disk, and run it again.")
+    stale = ("IDA sent a page instead of {file}: the download links have expired or your session has ended. Sign in "
+             f"again with ida.signin() if IDA has signed you out, then run ida.images({wanted!r}, refresh=True).")
+    try:
+        fetched = _fetch([url for url, _ in links], folder, retries, _headers(session, page=COLLECTIONS_PAGE), stale, downloads,
+                         timeout=600)
+    except ConnectionError as error:
+        raise ConnectionError(f"{error}. If the links have expired, run ida.images({wanted!r}, refresh=True).") from None
+    report += [(f"downloads/{stem}/{file}", kind, size, unpacked) for kind, (file, size, unpacked) in zip(kinds, fetched)]
+    return _report(report, columns)
+
+
+def _stem(name: str, collection_id: str) -> str:
+    """A collection's name as a file name. images() adds the ID when two names differ only in case, as on a Mac
+    they would name the same file."""
+    return re.sub(r"[^\w.-]+", "_", name).strip("._") or f"collection_{collection_id}"

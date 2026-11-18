@@ -51,7 +51,7 @@ atlas/src/                its sources; python3 atlas/src/build.py rebuilds it
 code/catalog.csv          the data dictionary: every kind of PPMI data, with format, keys and file name
 code/curated_map.csv      which Curated Data Cut column matches which measure here, and how closely
 code/data.py              loads the data folder into one DuckDB connection, queried with SQL
-code/ida.py               lists and downloads IDA's study data with your browser's session, files downloads, fetches image collections
+code/ida.py               lists and downloads IDA's study data and image collections with your browser's session, files downloads
 code/ppmi_pipeline/       the clean layer: typed tables, coverage views and cohort lists
 code/plot.py              figures for the notebooks, drawn from query results
 notebooks/dataset.ipynb   gets the data: the dictionary, what IDA offers, a SQL choice, the download, images and a check
@@ -79,14 +79,15 @@ PPMI data are not in this repository. Apply for access at [ppmi-info.org](https:
    - It starts with the data dictionary, `code/catalog.csv`: every kind of PPMI data, and the sets this project uses.
    - Sign in to IDA in your browser, then lend the notebook that session: in the browser's developer tools, copy the *Study Data* page's request as cURL and paste it when the notebook asks. IDA's sign-in has a human check and IDA issues no API tokens, so code cannot sign in by itself.
    - With the session, the notebook lists every file IDA offers and lines it up with the dictionary and with what you have. It then downloads whatever the SQL view `wanted` selects. By default that is the project's sets plus every DaTscan and structural MRI table.
-   - Raw DaTscan and MRI images come from two image searches and IDA's *Advanced Download* URL lists, which `ida.fetch` downloads in full.
+   - Raw DaTscan and MRI images: you run two image searches in the browser and add their results to two collections, because IDA's search results list participants. The notebook then downloads each collection with the same session, with no Download buttons or URL lists: `ida.images("PPMI DaTscan")`.
 
    Run it again at any time: it fetches only what is still missing.
 
    Underneath:
    - `ida.signin()`, `ida.offer()` and `ida.download(ids)` make the requests IDA's own Study Data page makes;
+   - `ida.collections()` and `ida.images(name)` make the requests its Image Collections page makes: the collection's list of images into `imaging/`, its zips into `downloads/` and the images into `images/`;
    - `ida.collect()` files anything you downloaded in the browser;
-   - `ida.fetch("urls.txt")` downloads an image collection.
+   - `ida.fetch("urls.txt")` downloads the URL list that *Advanced Download* saves.
 
 3. **Query.** `data.PPMI()` loads everything into one DuckDB connection:
 
@@ -116,12 +117,12 @@ Downloads go into `data/` in this repository, which git ignores, or into the fol
 data/
   study/       study-data CSVs as IDA names them, such as Participant_Status_10Nov2026.csv,
                and the Curated Data Cut workbook
-  imaging/     image-search exports (idaSearch_*.csv)
+  imaging/     image lists: search exports (idaSearch_*.csv) and the lists of your collections
   images/      unpacked DICOM and NIfTI files
   docs/        PDFs, such as the LEDD method
-  ida/         offer.csv (IDA's list of study files), the URL lists of image collections,
+  ida/         offer.csv (IDA's list of study files), the download links of image collections,
                and session.txt if you save your IDA session there
-  downloads/   the original zips, and image collections fetched from a URL list
+  downloads/   the original zips, with each image collection's zips in a folder of its own
 ```
 
 `ida.collect()` reads your Downloads folder, or the folder named by `IDA_DOWNLOADS`. Earlier versions kept the data in `~/ppmi`: move it with `mv ~/ppmi/* data/`, or set `PPMI_DATA=~/ppmi`.
@@ -134,7 +135,7 @@ One in-memory DuckDB connection holds two layers. Nothing is written to disk unl
 
 | Layer | What it holds |
 |---|---|
-| raw | Every downloaded table as IDA ships it, named after its file in lower case: `Letter_-_Number_Sequencing_10Nov2026.csv` becomes `letter_number_sequencing`, and the newest download of a table wins. The Curated Data Cut workbook loads too, its largest sheet as `ppmi_curated_data_cut_public` and its other tabs, the data dictionary among them, as `ppmi_curated_data_cut_public_<tab>`; with several extracts, the newest by the date in its file name wins (this needs `python-calamine`, which is in `requirements.txt`). Columns are text; the macros `num(x)`, `ppmi_date(x)` and `visit(event)` convert them. Also `dictionary` and `dictionary_columns` (the data dictionary, and PPMI's description of every column), `ida_files` (what IDA offers), `downloads` (what the data folder holds), `available` (all three lined up), `images` (image searches), `image_files` (downloaded scans), the `cognition` view, which stacks the six cognitive tests, and `curated_map`, `curated_pairs` and `curated_check`, which line the clean layer up with the Curated Data Cut (below). |
+| raw | Every downloaded table as IDA ships it, named after its file in lower case: `Letter_-_Number_Sequencing_10Nov2026.csv` becomes `letter_number_sequencing`, and the newest download of a table wins. The Curated Data Cut workbook loads too, its largest sheet as `ppmi_curated_data_cut_public` and its other tabs, the data dictionary among them, as `ppmi_curated_data_cut_public_<tab>`; with several extracts, the newest by the date in its file name wins (this needs `python-calamine`, which is in `requirements.txt`). Columns are text; the macros `num(x)`, `ppmi_date(x)` and `visit(event)` convert them. Also `dictionary` and `dictionary_columns` (the data dictionary, and PPMI's description of every column), `ida_files` (what IDA offers), `downloads` (what the data folder holds), `available` (all three lined up), `images` (the image lists, one row per image), `image_files` (downloaded scans), the `cognition` view, which stacks the six cognitive tests, and `curated_map`, `curated_pairs` and `curated_check`, which line the clean layer up with the Curated Data Cut (below). |
 | `clean` | Typed, deduplicated tables from `code/ppmi_pipeline`, keyed by `patient_id` and `event_id`: `clean.patients`, `clean.visits`, `clean.cognitive_assessments`, `clean.datscan_scans`, `clean.structural_scans`, `clean.medications`, `clean.ledd_by_visit` (total LEDD per visit), `clean.biospecimen_results` (`p.biospecimens()` pivots it to one column per test), coverage views and cohort lists. See [its README](code/ppmi_pipeline/README.md). |
 
 `p.tables()` lists the tables and `p.schema()` every column in both layers.

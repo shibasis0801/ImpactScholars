@@ -14,7 +14,7 @@ The connection holds two layers:
     main    every downloaded table exactly as IDA ships it (all columns as text, named after the file);
             the data dictionary (dictionary, dictionary_columns); what IDA offers (ida_files, the list that
             ida.offer() saves); what is in the data folder (downloads); all three lined up (available);
-            images (image searches), image_files (downloaded images) and the cognition view.
+            images (the image lists, one row per image), image_files (downloaded images) and the cognition view.
             An Excel workbook such as the Curated Data Cut loads too: its largest sheet under the file's name.
             curated_map says which column of the Curated Data Cut matches which clean-layer measure, and
             curated_check shows how far the two agree, measure by measure.
@@ -25,8 +25,8 @@ The connection holds two layers:
 The data folder is data/ in this repository, which git ignores, or the folder named in PPMI_DATA:
     study/      Study Data CSVs, named as IDA names them, for example Participant_Status_10Nov2026.csv,
                 and the Curated Data Cut workbook
-    imaging/    image-search CSVs from IDA Advanced Search
-    images/     unpacked image downloads (ida.collect and ida.fetch put them here)
+    imaging/    image lists: IDA Advanced Search exports and the collection lists ida.images saves
+    images/     unpacked image downloads (ida.images, ida.fetch and ida.collect put them here)
     docs/       PDFs that came in a zip of study tables
     ida/        offer.csv, IDA's list of study files (ida.offer), and the URL lists of image collections
     downloads/  the original zips
@@ -114,6 +114,16 @@ SEARCH_OPTIONAL = {
     "weighting": ("weighting",),
     "acquisition": ("acquisition type", "acq type"),
 }
+
+# An image in two lists, such as a search export and a collection list, keeps one row: the one that says the most,
+# since a search export can carry the weighting and acquisition type and a collection list cannot. Lists write an image
+# ID as I123, 123 or 123.0, so the comparison leaves those differences out.
+DISTINCT_IMAGES = r"""
+DELETE FROM images WHERE rowid IN (
+    SELECT rowid FROM images WHERE nullif(trim(image_id), '') IS NOT NULL
+    QUALIFY row_number() OVER (PARTITION BY regexp_replace(upper(trim(image_id)), '^I|\.0+$', '', 'g'), lower(trim(modality))
+                               ORDER BY weighting IS NULL, acquisition IS NULL, "date" IS NULL, file, rowid) > 1)
+"""
 
 IMAGE_SERIES = {
     "DaTscan SPECT images": r"dat|spect",
@@ -387,7 +397,8 @@ class PPMI:
             self._tidy(name, path)
 
     def _load_searches(self, paths: list[Path]) -> None:
-        """Stack the image-search CSVs into images, one row per image series, with the visit name as a code in event."""
+        """Stack the image lists (search exports and collection lists) into images, one row per image series, with the
+        visit name as a code in event. An image listed twice, as in a search and a collection, keeps its first row."""
         names = [*SEARCH, *SEARCH_OPTIONAL, "file", "event"]
         self.db.execute(f"CREATE OR REPLACE TABLE images ({', '.join(quoted(name) + ' VARCHAR' for name in names)})")
         visit_code = "CASE {} " + " ".join(f"WHEN '{name}' THEN '{code}'" for name, code in VISITS.items()) + " ELSE {} END"
@@ -420,6 +431,7 @@ class PPMI:
                        {', '.join(pick(options) for options in SEARCH_OPTIONAL.values())}, ?, {visit_code.format(visit, visit)}
                 FROM incoming_search""", [path.name])
         self.db.execute("DROP TABLE IF EXISTS incoming_search")
+        self.db.execute(DISTINCT_IMAGES)
 
     def _load_offer(self) -> None:
         """What IDA offers, from the list ida.offer() saved as ida/offer.csv: one row per file with its ID and IDA's place for it."""
@@ -459,7 +471,7 @@ class PPMI:
             rows.append((name, path.name, day, total, participants, len(columns)))
         total, participants, searches = self.db.execute("SELECT count(*), count(DISTINCT PATNO), count(DISTINCT file) FROM images").fetchall()[0]
         if total:
-            rows.append(("images", f"{searches} search CSVs", None, total, participants, len(self.db.table("images").columns)))
+            rows.append(("images", f"{searches} image lists", None, total, participants, len(self.db.table("images").columns)))
         for dataset, pattern in IMAGE_SERIES.items():
             total, participants = self.db.execute("SELECT count(*), count(DISTINCT PATNO) FROM image_files WHERE regexp_matches(lower(series), ?)",
                                                   [pattern]).fetchall()[0]
